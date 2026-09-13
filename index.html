@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Money Camp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --canvas:#EEF2FA; --panel:#FFFFFF; --panel-2:#F6F8FD;
+  --ink:#141733; --muted:#5C6488; --line:#141733; --line-soft:#C9D2E8; --shadow:#141733;
+  --mint:#00A36C; --tang:#FF6B35; --sun:#D99B00; --grape:#7C5CFF; --sky:#2F8DFF; --berry:#E4497F;
+  --good:#00A36C; --bad:#E4497F; --on-accent:#FFFFFF;
+  --r-lg:20px; --r-md:14px; --r-sm:9px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --canvas:#0E1124; --panel:#1A1F3D; --panel-2:#232949; --ink:#EEF1FF; --muted:#9AA3CC;
+    --line:#3B4374; --line-soft:#3B4374; --shadow:#05070F;
+    --mint:#2BD99A; --tang:#FF8A5C; --sun:#FFC940; --grape:#A98CFF; --sky:#5FAEFF; --berry:#FF6E9F;
+    --good:#2BD99A; --bad:#FF6E9F; --on-accent:#0E1124;
+  }
+}
+:root[data-theme="dark"]{
+  --canvas:#0E1124; --panel:#1A1F3D; --panel-2:#232949; --ink:#EEF1FF; --muted:#9AA3CC;
+  --line:#3B4374; --line-soft:#3B4374; --shadow:#05070F;
+  --mint:#2BD99A; --tang:#FF8A5C; --sun:#FFC940; --grape:#A98CFF; --sky:#5FAEFF; --berry:#FF6E9F;
+  --good:#2BD99A; --bad:#FF6E9F; --on-accent:#0E1124;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--canvas);color:var(--ink);font-family:"DM Sans","Segoe UI",system-ui,sans-serif;
+  font-size:17px;line-height:1.55;-webkit-text-size-adjust:100%}
+.wrap{max-width:760px;margin:0 auto;padding:22px 18px 72px}
+h1,h2,h3,.num,.big{font-family:"Bricolage Grotesque","DM Sans",system-ui,sans-serif;font-weight:800;letter-spacing:-0.02em;line-height:1.05;margin:0}
+p{margin:0 0 12px}
+button{font-family:inherit;font-size:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+.tnum{font-variant-numeric:tabular-nums}
+
+.masthead{margin-bottom:26px}
+.kicker{font-size:14px;color:var(--muted);margin:0 0 10px;font-weight:500}
+h1{font-size:clamp(38px,11vw,62px)}
+h1 .stack{display:block}
+.tagline{margin:14px 0 0;font-size:18px;max-width:34ch;color:var(--muted)}
+.tally{display:flex;align-items:center;gap:12px;margin-top:20px;border:2px solid var(--line);
+  border-radius:var(--r-md);background:var(--panel);padding:11px 14px;box-shadow:3px 3px 0 var(--shadow)}
+.tally-track{flex:1;height:12px;border-radius:99px;background:var(--panel-2);border:2px solid var(--line);overflow:hidden}
+.tally-fill{height:100%;background:var(--mint);width:0%;transition:width .45s cubic-bezier(.2,.8,.3,1)}
+.tally-text{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:15px;white-space:nowrap}
+
+.board{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:26px}
+@media(min-width:620px){.board{grid-template-columns:repeat(3,1fr)}}
+.badge{position:relative;text-align:left;background:var(--panel);color:var(--ink);border:3px solid var(--line);
+  border-radius:var(--r-lg);padding:14px 13px 15px;box-shadow:4px 4px 0 var(--shadow);
+  display:flex;flex-direction:column;gap:7px;min-height:158px;transition:transform .12s ease,box-shadow .12s ease}
+.badge:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--shadow)}
+.badge .day-no{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:13px;background:var(--c);
+  color:var(--on-accent);border-radius:99px;padding:2px 10px;align-self:flex-start;border:2px solid var(--line)}
+.badge .emoji{font-size:30px;line-height:1}
+.badge .b-title{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:18px;line-height:1.12}
+.badge .b-sub{font-size:13.5px;color:var(--muted);line-height:1.35}
+.badge.done{background:var(--panel-2)}
+.badge .stamp{position:absolute;top:9px;right:9px;width:34px;height:34px;border-radius:50%;background:var(--mint);
+  border:3px solid var(--line);display:grid;place-items:center;font-size:16px;color:var(--on-accent);transform:rotate(-12deg)}
+.badge .stamp.pop{animation:stampIn .45s cubic-bezier(.2,1.5,.4,1)}
+@keyframes stampIn{0%{transform:scale(2.4) rotate(22deg);opacity:0}60%{opacity:1}100%{transform:scale(1) rotate(-12deg);opacity:1}}
+
+.day-view{display:none}
+.day-view.on{display:block}
+.home.off{display:none}
+.hide{display:none}
+.backbar{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.btn{border:3px solid var(--line);border-radius:var(--r-md);background:var(--panel);color:var(--ink);
+  padding:9px 14px;font-weight:700;box-shadow:3px 3px 0 var(--shadow);transition:transform .1s ease,box-shadow .1s ease}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow)}
+.btn.primary{background:var(--c,var(--sky));color:var(--on-accent)}
+.btn.wide{width:100%;text-align:center;font-size:18px;padding:13px}
+.btn[disabled]{opacity:.5;cursor:not-allowed;box-shadow:none;transform:none;background:var(--panel-2);color:var(--muted)}
+.btn.danger{background:var(--bad);color:var(--on-accent)}
+
+.day-head{border-left:8px solid var(--c);padding-left:14px;margin-bottom:18px}
+.day-head .eyebrow{font-size:14px;color:var(--muted);font-weight:500;margin-bottom:4px}
+.day-head h2{font-size:clamp(27px,7.5vw,38px)}
+.panel{background:var(--panel);border:3px solid var(--line);border-radius:var(--r-lg);padding:17px;
+  box-shadow:4px 4px 0 var(--shadow);margin-bottom:18px}
+.panel h3{font-size:20px;margin-bottom:9px}
+.lesson p:last-child{margin-bottom:0}
+.lesson strong{background:var(--c);color:var(--on-accent);padding:1px 6px;border-radius:6px;font-weight:700;white-space:nowrap}
+.step-lab{font-size:13px;font-weight:700;color:var(--muted);margin-bottom:9px}
+.gate{border-style:dashed}
+.gate.settled{border-style:solid}
+
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+label.ctl{display:block;margin-bottom:16px}
+label.ctl .lab{display:flex;justify-content:space-between;align-items:baseline;font-weight:700;font-size:15px;margin-bottom:7px}
+label.ctl .val{font-family:"Bricolage Grotesque",sans-serif;font-size:21px;color:var(--c)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:14px;border-radius:99px;
+  background:var(--panel-2);border:2px solid var(--line);margin:0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:30px;height:30px;border-radius:50%;
+  background:var(--c);border:3px solid var(--line);margin-top:-1px}
+input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:var(--c);border:3px solid var(--line)}
+input[type=text]{width:100%;padding:11px 12px;border:3px solid var(--line);border-radius:var(--r-md);
+  background:var(--panel-2);color:var(--ink);font-family:inherit;font-size:16px}
+
+.jars{display:grid;gap:11px}
+.jar{display:flex;align-items:center;gap:11px;border:3px solid var(--line);border-radius:var(--r-md);padding:10px;background:var(--panel-2)}
+.jar .jicon{font-size:26px}
+.jar .jbody{flex:1;min-width:0}
+.jar .jname{font-weight:700;font-size:15.5px;line-height:1.2}
+.jar .jnote{font-size:12.5px;color:var(--muted);line-height:1.3}
+.jar .jpct{font-family:"Bricolage Grotesque",sans-serif;font-size:19px;min-width:52px;text-align:right}
+.step{width:38px;height:38px;border-radius:var(--r-sm);border:3px solid var(--line);background:var(--panel);
+  font-family:"Bricolage Grotesque",sans-serif;font-size:20px;line-height:1;color:var(--ink);display:grid;place-items:center;flex:none}
+.pool{text-align:center;font-weight:700;margin:12px 0 4px;font-size:15px}
+.pool b{font-family:"Bricolage Grotesque",sans-serif;font-size:22px;color:var(--c)}
+
+.cards{display:grid;gap:10px}
+.card-q{border:3px solid var(--line);border-radius:var(--r-md);padding:13px;background:var(--panel-2)}
+.card-q .qtext{font-weight:700;margin-bottom:10px;font-size:16px}
+.opts{display:flex;gap:9px;flex-wrap:wrap}
+.opt{border:3px solid var(--line);border-radius:var(--r-sm);background:var(--panel);color:var(--ink);
+  padding:9px 13px;font-weight:700;flex:1;min-width:100px}
+.opt.pick-good{background:var(--good);color:var(--on-accent)}
+.opt.pick-bad{background:var(--bad);color:var(--on-accent)}
+.opt.pick-miss{background:var(--panel-2);color:var(--muted)}
+.opt[disabled]{cursor:default}
+.why{margin-top:10px;font-size:14.5px;line-height:1.45;color:var(--muted);display:none}
+.why.on{display:block}
+
+.guessbar{border:3px solid var(--line);border-radius:var(--r-md);background:var(--panel-2);padding:11px 13px;
+  margin-bottom:16px;font-size:15px;line-height:1.4}
+.guessbar b{font-family:"Bricolage Grotesque",sans-serif}
+.guessbar .verdict{display:block;margin-top:6px;font-weight:700}
+.guessbar .verdict.hit{color:var(--good)}
+.guessbar .verdict.missed{color:var(--bad)}
+
+.result{border:3px dashed var(--line);border-radius:var(--r-md);padding:14px;background:var(--panel-2);margin-top:14px}
+.result .big{font-size:30px;display:block;color:var(--c)}
+.result .lab2{font-size:13.5px;color:var(--muted);font-weight:500}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.stat{border:3px solid var(--line);border-radius:var(--r-md);padding:11px;background:var(--panel-2)}
+.stat .big{font-size:25px;display:block;line-height:1.1}
+.stat .lab2{font-size:12.5px;color:var(--muted);display:block;margin-top:3px;font-weight:500}
+
+.bars{display:flex;align-items:flex-end;gap:7px;height:170px;margin:16px 0 8px;padding-top:6px}
+.bcol{flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%;gap:4px}
+.bstack{display:flex;flex-direction:column;justify-content:flex-end;height:100%;border-radius:6px 6px 0 0;
+  overflow:hidden;border:2px solid var(--line);border-bottom:none}
+.bseg{width:100%;transition:height .5s cubic-bezier(.2,.8,.3,1)}
+.bseg.own{background:var(--sky)}
+.bseg.earn{background:var(--mint)}
+.blab{font-size:11px;text-align:center;color:var(--muted);font-weight:700;line-height:1.25}
+.legend{display:flex;gap:14px;font-size:13px;flex-wrap:wrap;color:var(--muted);font-weight:500}
+.key{display:inline-block;width:13px;height:13px;border-radius:4px;border:2px solid var(--line);vertical-align:-2px;margin-right:5px}
+.ride{display:flex;align-items:center;gap:2px;height:46px;margin:4px 0 10px}
+.ride span{flex:1;border-radius:2px}
+
+table.mini{width:100%;border-collapse:collapse;font-size:14px;margin-top:10px}
+table.mini th,table.mini td{padding:7px 6px;border-bottom:2px solid var(--line-soft);text-align:right}
+table.mini th:first-child,table.mini td:first-child{text-align:left}
+table.mini th{font-family:"Bricolage Grotesque",sans-serif;font-size:13px;color:var(--muted)}
+.up{color:var(--good);font-weight:700}
+.down{color:var(--bad);font-weight:700}
+.headline{border-left:5px solid var(--c);padding:6px 0 6px 11px;margin:9px 0;font-size:14.5px;line-height:1.4}
+.news{background:var(--panel-2);border:3px solid var(--line);border-radius:var(--r-md);padding:14px;font-size:15.5px;line-height:1.5}
+.news h4{margin:0 0 8px;font-family:"Bricolage Grotesque",sans-serif;font-size:19px;line-height:1.15}
+.pick-list{display:grid;gap:9px;margin-top:12px}
+.pickable{text-align:left;border:3px solid var(--line);border-radius:var(--r-sm);background:var(--panel);
+  color:var(--ink);padding:11px;font-size:15px;line-height:1.35}
+.pickable.sel{background:var(--sky);color:var(--on-accent);font-weight:700}
+.pickable.right{background:var(--good);color:var(--on-accent);font-weight:700}
+.pickable.wrong{background:var(--bad);color:var(--on-accent);font-weight:700}
+.script{background:var(--panel-2);border:3px solid var(--line);border-radius:var(--r-md);padding:14px;
+  margin-top:14px;font-size:16px;line-height:1.6;display:none}
+.script.on{display:block}
+.script em{color:var(--c);font-style:normal;font-weight:700}
+.done-bar{margin-top:26px}
+.note{font-size:13.5px;color:var(--muted);line-height:1.45}
+
+details.grown{margin-top:34px;border:3px solid var(--line);border-radius:var(--r-lg);background:var(--panel);
+  box-shadow:4px 4px 0 var(--shadow);overflow:hidden}
+details.grown summary{padding:15px 17px;font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:18px;
+  cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:10px}
+details.grown summary::-webkit-details-marker{display:none}
+details.grown summary::after{content:"+";font-size:24px;color:var(--muted)}
+details.grown[open] summary::after{content:"\2013"}
+.grown-body{padding:0 17px 17px;font-size:15.5px}
+.grown-body h4{font-family:"Bricolage Grotesque",sans-serif;font-size:16px;margin:16px 0 6px}
+.grown-body ul{margin:0 0 10px;padding-left:20px}
+.grown-body li{margin-bottom:6px}
+.cert{border:5px double var(--line);border-radius:var(--r-lg);background:var(--panel);padding:24px 18px;
+  text-align:center;margin-top:26px;box-shadow:5px 5px 0 var(--shadow)}
+.cert .seal{font-size:44px}
+.cert h3{font-size:26px;margin:8px 0}
+.cert .name{font-family:"Bricolage Grotesque",sans-serif;font-size:30px;color:var(--mint);
+  border-bottom:3px solid var(--line);display:inline-block;padding:0 14px 3px;margin:6px 0 12px;min-width:60%}
+.badge.locked{opacity:.5}
+[tabindex="-1"]:focus{outline:none}
+.badge .lock{position:absolute;top:9px;right:9px;font-size:19px}
+.chip{font-size:11.5px;font-weight:700;color:var(--muted);margin-top:auto;padding-top:4px}
+.notice{border:3px solid var(--line);border-radius:var(--r-md);background:var(--panel-2);padding:11px 13px;
+  margin-top:14px;font-size:14.5px;font-weight:700}
+.record{background:var(--panel);border:3px solid var(--line);border-radius:var(--r-lg);padding:16px;
+  box-shadow:4px 4px 0 var(--shadow);margin-top:22px}
+.record h3{font-size:18px;margin-bottom:11px}
+.rec-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.receipt{border:3px solid var(--line);border-radius:var(--r-md);background:var(--panel-2);padding:15px;text-align:center;margin-bottom:13px}
+.receipt .rname{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:20px;line-height:1.15}
+.receipt .ramt{font-family:"Bricolage Grotesque",sans-serif;font-size:30px;color:var(--c);display:block;margin-top:5px}
+.catgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.catbtn{border:3px solid var(--line);border-radius:var(--r-sm);background:var(--panel);color:var(--ink);
+  padding:12px 8px;font-weight:700;font-size:15px;min-height:52px}
+.catgrid .catbtn:last-child{grid-column:span 2}
+.splitbar{display:flex;height:34px;border:3px solid var(--line);border-radius:var(--r-sm);overflow:hidden;margin:12px 0 8px}
+.splitbar span{overflow:hidden}
+.lockin{margin-top:12px}
+.opt.chosen{background:var(--ink);color:var(--canvas)}
+label.sw{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;margin-top:8px}
+label.sw input{width:22px;height:22px;accent-color:var(--mint)}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="masthead">
+    <p class="kicker">Ten days, one badge each, five to ten minutes a sitting</p>
+    <h1><span class="stack">Money</span><span class="stack">Camp</span></h1>
+    <p class="tagline">The stuff banks teach heirs at 22, built for a ten-year-old who'd rather play than read.</p>
+    <div class="tally"><div class="tally-track"><div class="tally-fill" id="tallyFill"></div></div>
+      <div class="tally-text" id="tallyText">0 of 10 badges</div></div>
+  </header>
+  <main class="home" id="home">
+    <div class="board" id="board"></div>
+    <div id="certSlot"></div>
+    <details class="grown"><summary>Notes for the grown-up</summary><div class="grown-body" id="grownBody"></div></details>
+  </main>
+  <section class="day-view" id="dayView"></section>
+</div>
+<script>/* ================= helpers ================= */
+const $=(s,r)=>(r||document).querySelector(s);
+const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function money(n,dec){
+  if(dec===undefined)dec=(Math.abs(n)>=100||Math.abs(n-Math.round(n))<0.005)?0:2;
+  return '$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec});
+}
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const TICK='\u2713 ',CROSS='\u2717 ';
+const SEQ=[6,11,23,25,-3,-9,-4,12,34,9,8,26,25,-30,16,-16,1,1,20,7,-6,-2,-21,17,5,38,-17,3,50,27,26,7,4,53,32,7,4,-6,-20,-15,8,15,-9,28,9,-33,-4,38,27,-22,49,1,0,-15,-5,19,32,31,41,-13];
+
+/* ================= saved progress ================= */
+const KEY='moneycamp.v3';
+let state={done:[],name:'',free:false,res:{}};
+try{const raw=localStorage.getItem(KEY);if(raw){const p=JSON.parse(raw);
+  if(p&&Array.isArray(p.done))state=Object.assign(state,p);
+  if(!state.res||typeof state.res!=='object'||Array.isArray(state.res))state.res={};
+  state.done=[...new Set(state.done.filter(n=>Number.isInteger(n)&&n>=1&&n<=10))];
+  if(typeof state.name!=='string')state.name='';
+  state.free=!!state.free;}}catch(e){state={done:[],name:'',free:false,res:{}};}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}};
+const isDone=n=>state.done.indexOf(n)>-1;
+const isLocked=n=>!state.free&&n>1&&!isDone(n-1);
+const R=n=>(state.res[n]=state.res[n]||{pred:null,score:null,carry:{}});
+function carried(day,key,fallback){
+  const r=state.res[day];
+  return r&&r.carry&&r.carry[key]!==undefined?r.carry[key]:fallback;
+}
+
+/* reusable quiz: reveals the right answer on a miss, marks with a glyph not just colour */
+function quiz(box,items,onDone){
+  box.innerHTML=items.map((it,i)=>`<div class="card-q"><div class="qtext">${it.q}</div>
+    <div class="opts">${it.o.map((o,j)=>`<button class="opt" data-i="${i}" data-j="${j}">${o}</button>`).join('')}</div>
+    <div class="why" data-w="${i}">${it.why}</div></div>`).join('');
+  let done=0,right=0;
+  box.addEventListener('click',e=>{
+    const b=e.target.closest('.opt');if(!b||b.disabled)return;
+    const i=+b.dataset.i,j=+b.dataset.j,it=items[i],ok=(j===it.a);
+    const btns=b.parentElement.querySelectorAll('.opt');
+    btns.forEach(x=>x.disabled=true);
+    b.textContent=(ok?TICK:CROSS)+b.textContent;b.classList.add(ok?'pick-good':'pick-bad');
+    if(!ok){const c=btns[it.a];c.textContent=TICK+c.textContent;c.classList.add('pick-good');}
+    box.querySelector('[data-w="'+i+'"]').classList.add('on');
+    if(ok)right++;done++;
+    if(done===items.length&&onDone)onDone(right,items.length);
+  });
+}
+
+/* ================= the ten days ================= */
+const DAYS=[];
+
+/* ---------------- DAY 1 ---------------- */
+DAYS.push({
+  n:1,emoji:'\u{1F9FE}',color:'var(--tang)',title:'Where does it go?',sub:"Sort a real month, don't guess one",
+  lesson:`<p>Before you decide what to do with money, find out what already happens to it.</p>
+  <p>Nobody knows. Everybody thinks they know. The gap between <strong>the guess</strong> and the count is the most useful thing in this camp.</p>
+  <p>Sam is ten and got $40 last month. Here is every single thing Sam bought. Sort it and see where it went.</p>`,
+  predict:{q:"Out of Sam's $40, how much went on snacks and drinks?",
+    o:['Under $6','$6 to $12','$12 to $20','Over $20'],a:2,
+    note:'Lock in a guess before you sort a single one.'},
+  build(el,ctx){
+    const CAT=[['\u{1F36C}','Snacks'],['\u{1F3AE}','Games'],['\u{1F9F8}','Stuff'],['\u{1F381}','Gifts'],['\u{1F3E6}','Saved']];
+    const COL=['var(--tang)','var(--sky)','var(--grape)','var(--berry)','var(--mint)'];
+    const ITEMS=[['Slushie after school',2.50,0],['Chips, three bags',3.00,0],['Game skin',5.00,1],
+      ['Sticker pack',2.50,2],['Ice cream van',3.50,0],['Birthday present for Dad',5.00,3],
+      ['Vending machine drink',1.75,0],['Coins in an app',3.00,1],['Put in the tin',3.00,4],
+      ['Candy at the corner store',2.25,0],['Fidget thing',4.00,2],['Bubble tea with Mia',4.50,0]];
+    const tot=[0,0,0,0,0];let i=0,right=0,note='';
+    el.innerHTML=`<div class="panel"><div class="row"><h3>Sam's month</h3><span class="tally-text" id="pg">1 of 12</span></div>
+      <div id="stage"></div></div>`;
+    function draw(){
+      const stage=$('#stage',el);
+      if(i<ITEMS.length){
+        $('#pg',el).textContent=(i+1)+' of 12';
+        stage.innerHTML=`${note?`<div class="notice" style="margin:0 0 13px">${note}</div>`:''}
+          <div class="receipt"><span class="rname">${ITEMS[i][0]}</span><span class="ramt tnum">${money(ITEMS[i][1],2)}</span></div>
+          <div class="catgrid">${CAT.map((c,j)=>`<button class="catbtn" data-j="${j}">${c[0]} ${c[1]}</button>`).join('')}</div>`;
+        stage.querySelector('.catgrid').addEventListener('click',e=>{
+          const b=e.target.closest('.catbtn');if(!b)return;
+          const j=+b.dataset.j,truth=ITEMS[i][2];
+          if(j===truth){right++;note='';}
+          else note=CROSS+ITEMS[i][0]+' goes under '+CAT[truth][1]+'. Filed there so the count stays true.';
+          tot[truth]+=ITEMS[i][1];i++;draw();
+        });
+      }else{
+        const sum=tot.reduce((a,b)=>a+b,0),pct=Math.round(tot[0]/sum*100);
+        $('#pg',el).textContent='all 12 sorted';
+        stage.innerHTML=`<div class="splitbar" aria-hidden="true">${tot.map((t,j)=>t>0?`<span style="width:${t/sum*100}%;background:${COL[j]}"></span>`:'').join('')}</div>
+          <div class="legend">${CAT.map((c,j)=>`<span><i class="key" style="background:${COL[j]}"></i>${c[1]} ${money(tot[j],2)} \u00b7 ${Math.round(tot[j]/sum*100)}%</span>`).join('')}</div>
+          <div class="result"><span class="big tnum">${money(tot[0],2)}</span>
+          <span class="lab2">went on snacks and drinks. That is ${pct}% of everything Sam got, in bits of $2 and $3.</span>
+          <p class="note" style="margin:10px 0 0">Nothing here was a big purchase. That is the point. Small and often is how money leaves, and small and often is exactly what people forget when they guess. You filed ${right} of 12 into the right pile.</p></div>`;
+        ctx.record({score:[right,12],carry:{snack:tot[0],pct:pct}});
+        ctx.work();
+      }
+    }
+    draw();
+  }
+});
+
+/* ---------------- DAY 2 ---------------- */
+DAYS.push({
+  n:2,emoji:'\u{1F9E6}',color:'var(--sky)',title:'Need or want',sub:'Ten calls, and some are both',
+  recall:{q:"Sam's snack money arrived in...",o:['one big purchase','lots of small ones'],a:1,
+    why:'Twelve buys, none of them big. Small and often is how money leaves without being noticed.'},
+  lesson:`<p>A need keeps you warm, fed, healthy or in school. A want is everything else. Wants are fine.</p>
+  <p>Watch for the third kind. The coat is a need. The logo on the coat is a want. Same object, <strong>two different buys</strong>.</p>`,
+  predict:{q:'Ten things are coming up. How many are pure needs, with no want mixed in?',
+    o:['2','4','6','8'],a:1,note:'Lock in a number. You find out in a minute.'},
+  build(el,ctx){
+    const O=['Need','Want','Bit of both'];
+    const Q=[
+      {q:'A winter coat when it is snowing',a:0,why:'Staying warm is not optional.'},
+      {q:'The $180 hoodie everyone at school has',a:2,why:'A hoodie is a need. That hoodie is a want. You are buying two things at once.'},
+      {q:'Food in the fridge',a:0,why:'Yes. Easy one.'},
+      {q:'Delivery, because the fridge is full but nothing looks good',a:1,why:'You are not buying food. You are buying not-cooking.'},
+      {q:'Toothpaste',a:0,why:'Skipping it costs far more at the dentist later.'},
+      {q:'A skin so your game character looks cooler',a:1,why:'A want, built by people paid to make it feel like a need.'},
+      {q:'Shoes that fit',a:0,why:'Need.'},
+      {q:'A fourth pair of shoes that fit',a:1,why:'The first pair was the need. This is a collection.'},
+      {q:'Internet at home for schoolwork',a:2,why:'School runs on it. So does YouTube. The same wire does both jobs.'},
+      {q:'A new phone when your phone works fine',a:1,why:'Newer is not the same as needed.'}];
+    el.innerHTML=`<div class="panel"><div class="row"><h3>Make the call</h3><span class="tally-text" id="sc">0 of 10</span></div>
+      <div class="cards" id="c"></div><div class="result" id="fin" style="display:none"></div></div>`;
+    let n=0;
+    quiz($('#c',el),Q.map(x=>({q:x.q,o:O,a:x.a,why:x.why})),(right,total)=>{
+      $('#fin',el).style.display='block';
+      $('#fin',el).innerHTML=`<span class="big tnum">${right} of ${total}</span>
+        <span class="lab2">Four were pure needs. You guessed ${esc(ctx.guessLabel)}.</span>
+        <p class="note" style="margin:10px 0 0">Wants are not the enemy. Paying for one by accident is.</p>`;
+      ctx.record({score:[right,total]});ctx.verdict(ctx.guess===1);ctx.work();
+    });
+    $('#c',el).addEventListener('click',e=>{if(e.target.closest('.opt')){n=Math.min(10,n+1);$('#sc',el).textContent=n+' of 10';}});
+  }
+});
+
+/* ---------------- DAY 3 ---------------- */
+DAYS.push({
+  n:3,emoji:'\u{1FAD9}',color:'var(--mint)',title:'Give every dollar a job',sub:'All of it. Not most of it.',
+  recall:{q:'A $180 hoodie with a big logo is...',o:['a need','a want','a bit of both'],a:2,
+    why:'The hoodie part is the need. The logo is the want. You pay for both in one go.'},
+  lesson:`<p>Money with no plan disappears. Not stolen. Just spent on nothing you can remember a week later.</p>
+  <p>So every dollar gets a job first. Four jars, and you pick the shares. There is no perfect split, but <strong>all of it on spend</strong> is how people end every month at zero, forever.</p>
+  <p class="note">Money does not always turn up on time, or in the same amount. The jars are shares of whatever arrives, not promises.</p>`,
+  predict:{q:'You get $10 a week. You put 30% of it in the Save jar. How many dollars is that?',
+    o:['$1','$3','$7','$30'],a:1,note:'Work it out before you tap.'},
+  build(el,ctx){
+    const jars=[['\u{1F37F}','Spend','Snacks, games, fun now',0],['\u{1F3AF}','Save','One big thing you actually want',0],
+      ['\u{1F331}','Grow','You do not touch this one. Day 6 shows why.',0],['\u{1F381}','Give','A gift, or someone who needs it',0]];
+    let weekly=10;
+    el.innerHTML=`<div class="panel">
+      <label class="ctl"><span class="lab"><span>Money you get each week</span><span class="val tnum" id="wk">$10</span></span>
+      <input type="range" id="wkR" min="1" max="40" step="1" value="10"></label>
+      <p class="note" style="margin-bottom:13px">Nothing is assigned yet. Put all 100% of it to work.</p>
+      <div class="jars" id="jars"></div><div class="pool" id="pool"></div><div class="result" id="out"></div></div>`;
+    const used=()=>jars.reduce((s,j)=>s+j[3],0);
+    function draw(){
+      $('#jars',el).innerHTML=jars.map((j,i)=>`<div class="jar"><span class="jicon">${j[0]}</span>
+        <span class="jbody"><span class="jname">${j[1]}</span><br><span class="jnote">${j[2]}</span></span>
+        <button class="step" data-i="${i}" data-d="-10" aria-label="less ${j[1]}">\u2013</button>
+        <span class="jpct tnum">${j[3]}%</span>
+        <button class="step" data-i="${i}" data-d="10" aria-label="more ${j[1]}">+</button></div>`).join('');
+      const left=100-used();
+      $('#pool',el).innerHTML=left===0?'All of it has a job. That is the badge.':'Still with no job: <b class="tnum">'+left+'%</b>';
+      const ready=(left===0);
+      $('#out',el).innerHTML=`<div class="split">
+        <div class="stat"><span class="big tnum">${money(weekly*jars[0][3]/100,2)}</span><span class="lab2">to spend each week</span></div>
+        <div class="stat"><span class="big tnum">${money(weekly*jars[1][3]/100*52)}</span><span class="lab2">in the Save jar after a year</span></div></div>
+        ${ready?`<p class="note" style="margin:11px 0 0">Your Grow jar is ${money(weekly*jars[2][3]/100,2)} a week. Day 6 starts from that number.</p>`:''}`;
+      if(ready){
+        ctx.record({carry:{grow:+(weekly*jars[2][3]/100).toFixed(2),spend:jars[0][3],save:jars[1][3],growPct:jars[2][3],give:jars[3][3],weekly:weekly}});
+        ctx.work();
+      }
+    }
+    $('#jars',el).addEventListener('click',e=>{const b=e.target.closest('.step');if(!b)return;
+      const i=+b.dataset.i,d=+b.dataset.d,next=jars[i][3]+d;
+      if(next<0||next>100||(d>0&&used()+d>100))return;
+      jars[i][3]=next;draw();});
+    $('#wkR',el).addEventListener('input',e=>{weekly=+e.target.value;$('#wk',el).textContent=money(weekly);draw();});
+    draw();
+  }
+});
+
+/* ---------------- DAY 4 ---------------- */
+DAYS.push({
+  n:4,emoji:'\u{1F34B}',color:'var(--sun)',title:'Make it',sub:'Pick a price, open the stand, live with it',
+  recall:{q:'The Grow jar is the one you...',o:['spend first','never touch','give away'],a:1,
+    why:'It only works if it is left alone. Touching it is the one way to break it.'},
+  lesson:`<p>Every day so far has been about money that turned up. This one is about money you make.</p>
+  <p>Selling is not the same as keeping. What comes in is <strong>revenue</strong>. What is left after lemons, cups and the stand is <strong>profit</strong>. Only the second one is yours.</p>
+  <p>You get four hours. Pick a price and open. You will not see what happens until you commit.</p>`,
+  predict:{q:'Three ways to make $20. Which pays the most per hour?',
+    o:['Two hours of chores at $10 an hour','40 cups of lemonade at 50c, over four hours','Washing four cars at $5 each, three hours'],
+    a:0,note:'The lemonade stand sells the most. Careful.'},
+  build(el,ctx){
+    let tries=[],best=0;
+    el.innerHTML=`<div class="panel"><h3>Open your stand</h3>
+      <p class="note" style="margin-bottom:13px">At 50c a cup the stand paid $1.50 an hour, worse than the $10 chores pay. Cups and lemons cost 35c each, and the stand costs $12 to set up. Beating chores is easy. Your stand can do twice that, but only at one narrow band of prices. <b>Get to $20 an hour.</b></p>
+      <label class="ctl"><span class="lab"><span>Price per cup</span><span class="val tnum" id="pv">$1.00</span></span>
+      <input type="range" id="pr" min="0.5" max="3" step="0.25" value="1"></label>
+      <button class="btn primary wide" id="go">Open the stand at this price</button>
+      <div id="out"></div></div>`;
+    $('#pr',el).addEventListener('input',e=>{$('#pv',el).textContent=money(+e.target.value,2);});
+    $('#go',el).addEventListener('click',()=>{
+      const p=+$('#pr',el).value,cups=Math.max(0,Math.round(140-40*p));
+      const rev=cups*p,cost=cups*0.35+12,prof=rev-cost,hr=prof/4;
+      if(!tries.some(t=>t.p===p)) tries.push({p:p,cups:cups,rev:rev,prof:prof,hr:hr});
+      best=Math.max(best,hr);
+      tries.sort((a,b)=>a.p-b.p);
+      $('#out',el).innerHTML=`<table class="mini"><thead><tr><th>Price</th><th>Cups</th><th>In</th><th>Kept</th><th>An hour</th></tr></thead><tbody>
+        ${tries.map(t=>`<tr><td class="tnum">${money(t.p,2)}</td><td class="tnum">${t.cups}</td><td class="tnum">${money(t.rev,0)}</td>
+          <td class="tnum">${money(t.prof,0)}</td><td class="tnum ${t.hr>=10?'up':''}">${money(t.hr,2)}</td></tr>`).join('')}</tbody></table>
+        <div class="result"><span class="big tnum">${money(hr,2)} an hour</span>
+        <span class="lab2">${hr>=20?'That is the band. Twice what chores pay, from the same four hours.':hr>=10?'Beats chores, but this is not the best your stand can do. Keep hunting.':'Still under the $10 chores pay. Change the price and open again.'}</span>
+        <p class="note" style="margin:10px 0 0">${best>=20?'Look down the table. Revenue keeps climbing with the price. What you keep does not. Cheap sells buckets for nothing, dear sells almost none, and the money is in the middle.':tries.length>=4?'Hint: it is somewhere between $1.50 and $2.25. Both ends of the slider lose.':tries.length>2?'Look down the table. Revenue and profit stop moving together. Follow the last column, not the first.':'Try a few prices and watch the last two columns move differently.'}</p></div>`;
+      if(best>=20){ctx.record({carry:{bestHr:+best.toFixed(2),tries:tries.length}});ctx.work();}
+    });
+  }
+});
+
+/* ---------------- DAY 5 ---------------- */
+DAYS.push({
+  n:5,emoji:'\u{1F50E}',color:'var(--grape)',title:'Price detective',sub:'The big box is not always the deal',
+  recall:{q:'Profit is...',o:['everything that came in','what is left after costs','the price on the sign'],a:1,
+    why:'Revenue in, costs out, profit is the bit that stays with you.'},
+  lesson:`<p>Shops are built so you cannot easily tell what things cost. One bit of maths fixes it: <strong>price divided by amount</strong>.</p>
+  <p>Now the two boxes are comparable and the sticker cannot trick you. Watch the last one. Some prices are built so you cannot do the division at all.</p>`,
+  predict:{q:'Five pairs coming up. How many times is the bigger pack the better deal?',
+    o:['1','2','3','4'],a:2,note:'Bigger is usually cheaper per unit. Usually.'},
+  build(el,ctx){
+    const P=[
+      {n:'Cereal',a:['12 oz box for $4.20',4.20/12],b:['18 oz box for $5.40',5.40/18],u:'an ounce'},
+      {n:'Juice boxes',a:['6-pack for $5.40',5.40/6],b:['10-pack for $9.50',9.50/10],u:'each'},
+      {n:'Slime',a:['one tub for $3.00',3],b:['4-pack for $13.00',13/4],u:'a tub'},
+      {n:'Dog treats',a:['2 lb bag for $9.00',4.5],b:['5 lb bag for $21.00',4.2],u:'a pound'},
+      {n:'Gems in a game',a:['500 gems for $4.99',4.99/500],b:['1,200 gems for $9.99',9.99/1200],u:'a gem',d:3,
+       extra:'The real trick is not which pack. It is that the game prices everything in gems so you never feel the dollars leaving.'}];
+    el.innerHTML=`<div class="panel"><div class="cards" id="c"></div><div class="result" id="fin" style="display:none"></div></div>`;
+    const uP=(v,d)=>'$'+v.toFixed(d||2);
+    quiz($('#c',el),P.map(p=>({q:p.n+' \u2014 which is the better deal?',o:[p.a[0],p.b[0]],a:p.a[1]<p.b[1]?0:1,
+      why:`${p.a[0].split(' for ')[0]}: <b>${uP(p.a[1],p.d)} ${p.u}</b>. ${p.b[0].split(' for ')[0]}: <b>${uP(p.b[1],p.d)} ${p.u}</b>.${p.extra?' '+p.extra:''}`})),
+      (right,total)=>{
+        $('#fin',el).style.display='block';
+        $('#fin',el).innerHTML=`<span class="big tnum">${right} of ${total}</span>
+          <span class="lab2">The bigger pack won three times out of five. You guessed ${esc(ctx.guessLabel)}.</span>
+          <p class="note" style="margin:10px 0 0">Shops know most people assume the big one is cheaper, so sometimes it quietly is not. Thirty seconds of dividing is worth real money over a year.</p>`;
+        ctx.record({score:[right,total]});ctx.verdict(ctx.guess===2);ctx.work();
+      });
+  }
+});
+
+/* ---------------- DAY 6 ---------------- */
+DAYS.push({
+  n:6,emoji:'\u2744\uFE0F',color:'var(--berry)',title:'The snowball and the thief',sub:'It grows. Prices grow too.',
+  recall:{q:'To compare a big box and a small box, you...',o:['pick the bigger one','divide price by amount','pick the cheaper sticker'],a:1,
+    why:'Price divided by amount. It turns two different boxes into one fair number.'},
+  lesson:`<p>Money left alone in the right place earns a bit each year. Next year the extra earns extra too. That is the whole trick.</p>
+  <p>There is a thief in the room as well. Prices creep up about 3% a year, so the same $10 buys less every year. That creep is called <strong>inflation</strong>.</p>
+  <p>Two things happen at once. Your pile grows. What the pile buys shrinks. You have to beat the thief, not just grow.</p>`,
+  predict:{q:'You put away $5 a week starting today. At 60, how big is the pile?',
+    o:['$3,000','$13,000','$73,000','$400,000'],a:2,note:'You will put in $13,000 of your own money over those 50 years.'},
+  build(el,ctx){
+    const mine=carried(3,'grow',0);
+    const w0=5;
+    el.innerHTML=`<div class="panel">
+      <p class="note" style="margin-bottom:13px">Starting at the $5 a week you just guessed about.${mine>0?' Your own Grow jar from Day 3 was '+money(mine,2)+' a week, and there is a button for that below.':''}</p>
+      <label class="ctl"><span class="lab"><span>You put away each week</span><span class="val tnum" id="v1">${money(w0)}</span></span>
+      <input type="range" id="r1" min="1" max="25" step="1" value="${w0}"></label>
+      <label class="ctl"><span class="lab"><span>Until you are</span><span class="val tnum" id="v2">16</span></span>
+      <input type="range" id="r2" min="16" max="70" step="2" value="16"></label>
+      <div class="bars" id="bars"></div>
+      <div class="legend"><span><i class="key" style="background:var(--sky)"></i>money you put in</span><span><i class="key" style="background:var(--mint)"></i>money it made</span></div>
+      <div class="step-lab" style="margin-top:16px">The ride, year by year</div>
+      <div class="ride" id="ride"></div>
+      <div class="result" id="out"></div>
+      ${mine>0?`<button class="btn wide" id="useMine" style="margin-top:14px">Switch to my own Grow jar: ${money(mine,2)} a week</button>`:''}</div>
+      <p class="note">One made-up but realistic run of good years and bad ones, averaging about 7% a year. A real fifty years will look different, and will also have years like the red ones.</p>`;
+    function run(w,startAge,endAge){
+      let b=0,peak=0,dd=0;
+      for(let a=10;a<endAge;a++){
+        b=b*(1+SEQ[a-10]/100)+(a>=startAge?w*52:0);
+        peak=Math.max(peak,b);if(peak>0)dd=Math.min(dd,(b/peak-1)*100);
+      }
+      return{end:b,dd:dd};
+    }
+    function draw(){
+      const w=+$('#r1',el).value,end=+$('#r2',el).value;
+      $('#v1',el).textContent=money(w);$('#v2',el).textContent=end;
+      const marks=[16,20,30,40,50,60,70].filter(a=>a<=end);
+      if(marks[marks.length-1]!==end)marks.push(end);
+      const rows=marks.map(a=>({a:a,own:w*52*(a-10),tot:run(w,10,a).end}));
+      const max=Math.max.apply(null,rows.map(r=>r.tot))||1;
+      $('#bars',el).innerHTML=rows.map(r=>{
+        const h=(r.tot/max)*100,ownH=r.tot>0?Math.min(100,(r.own/r.tot)*100):100;
+        const lab=r.tot>=1000?'$'+(r.tot/1000).toFixed(r.tot<10000?1:0)+'k':money(r.tot);
+        return`<div class="bcol"><div class="bstack" style="height:${h}%">
+          <div class="bseg earn" style="height:${100-ownH}%"></div><div class="bseg own" style="height:${ownH}%"></div></div>
+          <div class="blab">${r.a}<br><span style="color:var(--ink);font-size:11.5px">${lab}</span></div></div>`;}).join('');
+      $('#ride',el).innerHTML=SEQ.slice(0,end-10).map(r=>
+        `<span title="${r}%" style="height:${Math.min(100,22+Math.abs(r)*1.6)}%;background:${r<0?'var(--bad)':'var(--good)'}"></span>`).join('');
+      const me=run(w,10,end),late=run(w,20,end),own=w*52*(end-10),today=me.end/Math.pow(1.03,end-10);
+      $('#out',el).innerHTML=`<span class="big tnum">${money(me.end)}</span>
+        <span class="lab2">at ${end}. You put in ${money(own)} of it. The rest, ${money(me.end-own)}, the money made by itself.</span>
+        <div class="split" style="margin-top:12px">
+        <div class="stat"><span class="big tnum">${money(today)}</span><span class="lab2">what that buys in today's money, after the thief</span></div>
+        <div class="stat"><span class="big tnum">${me.dd.toFixed(0)}%</span><span class="lab2">the worst fall along the way</span></div></div>
+        ${end>20?`<p class="note" style="margin:11px 0 0">Someone starting the same ${money(w)} a week at 20 ends with <b class="tnum">${money(late.end)}</b>. You end with about <b>${(me.end/Math.max(1,late.end)).toFixed(1)} times</b> as much, for ${money(w*52*10)} more of your own money. Ten years is the whole difference.</p>`:
+        `<p class="note" style="margin:11px 0 0">A bike, or a decent secondhand console, out of ${money(w)} a week. Now drag the second slider past 40 and watch what the same ${money(w)} does with real time behind it.</p>`}`;
+      if(end>=40){ctx.record({carry:{at60:Math.round(run(w,10,60).end),weekly:w}});ctx.work();}
+    }
+    const bump=()=>draw();
+    $('#r1',el).addEventListener('input',bump);$('#r2',el).addEventListener('input',bump);
+    if(mine>0){$('#useMine',el).addEventListener('click',()=>{
+      $('#r1',el).value=Math.max(1,Math.min(25,Math.round(mine)));
+      if(+$('#r2',el).value<60)$('#r2',el).value=60;
+      draw();$('#useMine',el).textContent='Now showing your own '+money(mine,2)+' a week';});}
+    draw();
+  }
+});
+
+/* ---------------- DAY 7 ---------------- */
+DAYS.push({
+  n:7,emoji:'\u23F3',color:'var(--sky)',title:'The waiting machine',sub:'Six offers. Two are traps.',
+  recall:{q:'Over fifty years, most of the pile came from...',o:['the money you put in','the money your money made'],a:1,
+    why:'Most of it was made by the money itself, not put in by you. That is why time matters more than the amount.'},
+  lesson:`<p>People will pay you to wait. That payment is called <strong>interest</strong>. It is the same force that grew your snowball.</p>
+  <p>Waiting is not automatically smart. A small reward for a long wait is a bad trade. You now have two yardsticks: money you grow does about 7% a year, and prices go up about 3% a year. An offer has to beat those.</p>
+  <p>Whatever you choose, you keep. Watch the running total.</p>`,
+  predict:{q:'Six offers coming up. On how many is "take it now" the smarter call?',
+    o:['0','1','2','3'],a:2,note:'Some of these are built to look generous.'},
+  build(el,ctx){
+    const O=[
+      {n:5,l:6,w:'a week',a:1,why:'An extra dollar on five, in a week. Nothing you could do with $5 comes close. Wait.'},
+      {n:10,l:14,w:'a month',a:1,why:'40% in one month. A bank would bite your hand off. Wait.'},
+      {n:20,l:22,w:'two weeks',a:1,why:'10% in two weeks, next to 7% in a whole year. Wait.'},
+      {n:50,l:60,w:'three months',a:1,why:'20% in three months, if you can leave it alone. Wait.'},
+      {n:15,l:15.40,w:'a year',a:0,why:'Forty cents for a whole year is about 2.7%. Prices go up 3%. You end up slightly poorer. Take it now.'},
+      {n:30,l:31,w:'two years',a:0,why:'A dollar over two years is under 2% a year. Worse than doing nothing. Take it now.'}];
+    el.innerHTML=`<div class="panel"><div class="row"><h3>Six offers</h3><span class="tally-text" id="purse">$0 so far</span></div>
+      <div class="cards" id="c"></div><div class="result" id="fin" style="display:none"></div></div>`;
+    let purse=0;
+    const box=$('#c',el);
+    box.addEventListener('click',e=>{
+      const b=e.target.closest('.opt');if(!b||b.dataset.counted)return;
+      b.dataset.counted='1';
+      purse+=(+b.dataset.j===0?O[+b.dataset.i].n:O[+b.dataset.i].l);
+      $('#purse',el).textContent=money(purse,2)+' so far';
+    });
+    quiz(box,O.map(o=>({q:money(o.n,2)+' right now, or '+money(o.l,2)+' in '+o.w+'?',
+      o:['Take '+money(o.n,2)+' now','Wait for '+money(o.l,2)],a:o.a,why:o.why})),
+      (right,total)=>{
+        const best=O.reduce((s,o)=>s+(o.a===0?o.n:o.l),0);
+        const always=O.reduce((s,o)=>s+o.l,0);
+        $('#fin',el).style.display='block';
+        $('#fin',el).innerHTML=`<span class="big tnum">${money(purse,2)}</span>
+          <span class="lab2">what you walked away with. The best possible was ${money(best,2)}. Waiting every single time would have got you ${money(always,2)}.</span>
+          <p class="note" style="margin:10px 0 0">You called ${right} of ${total} right, and guessed ${esc(ctx.guessLabel)} traps. The rule is never "always wait". It is <b>ask what the waiting pays</b>, then check it against 7% and 3%.</p>`;
+        ctx.record({score:[right,total],carry:{purse:+purse.toFixed(2)}});
+        ctx.verdict(ctx.guess===2);ctx.work();
+      });
+  }
+});
+
+/* ---------------- DAY 8 ---------------- */
+DAYS.push({
+  n:8,emoji:'\u{1F6B2}',color:'var(--tang)',title:'Renting money',sub:'Interest, pointed at you',
+  recall:{q:'Being paid to wait is called...',o:['profit','interest','inflation'],a:1,
+    why:'Interest. Earned when you lend or invest, paid when you borrow.'},
+  lesson:`<p>Nobody lends money for free. When you borrow, you pay rent on it. That rent is interest again, this time pointed at you.</p>
+  <p>The other half is whether anyone will lend to you at all. Adults have a <strong>credit score</strong>. It is a number for one thing: do you pay people back. Boring behaviour, repeated for years, is the whole game.</p>`,
+  predict:{q:'You borrow $150 for a bike and pay it back over 12 months at 2% a month. What do you hand over in total?',
+    o:['$150','$162','$170','$186'],a:2,note:'The balance shrinks as you pay, so the interest shrinks too.'},
+  build(el,ctx){
+    el.innerHTML=`<div class="panel"><h3>The $150 bike</h3>
+      <label class="ctl"><span class="lab"><span>Interest each month</span><span class="val tnum" id="iv">2%</span></span>
+      <input type="range" id="ir" min="0" max="5" step="0.5" value="2"></label>
+      <label class="ctl"><span class="lab"><span>Months to pay it back</span><span class="val tnum" id="mv">12</span></span>
+      <input type="range" id="mr" min="3" max="24" step="1" value="12"></label>
+      <div class="result" id="out"></div></div>
+      <div class="panel"><h3>Trust score: up or down?</h3><div class="cards" id="q"></div></div>`;
+    function draw(){
+      const r=+$('#ir',el).value/100,m=+$('#mr',el).value;
+      const pay=r===0?150/m:150*r/(1-Math.pow(1+r,-m)),tot=pay*m;
+      $('#iv',el).textContent=(r*100)+'%';$('#mv',el).textContent=m;
+      $('#out',el).innerHTML=`<span class="big tnum">${money(tot,2)}</span>
+        <span class="lab2">handed over in total, at ${money(pay,2)} a month. ${money(tot-150,2)} of it is rent on money, and you keep paying it long after the bike stops being new.</span>
+        <p class="note" style="margin:10px 0 0">Saving $12 a week instead: you own it outright in 13 weeks and pay nothing extra. Borrowing can still be right, if the thing earns you more than the rent costs. Just never by accident.</p>`;
+    }
+    const T=[
+      {q:'You pay your friend back on the exact day you promised',a:0,why:'This is the whole thing. Reliable, over and over.'},
+      {q:'You borrow from three different people in one week',a:1,why:'Lots of borrowing at once looks desperate to a lender.'},
+      {q:'You pay a little, on time, every month, for five years',a:0,why:'A long boring history is the most valuable thing you can build.'},
+      {q:'You spend right up to the limit on every card',a:1,why:'Using nearly all your credit pulls the score down, even if you pay.'},
+      {q:'You have never borrowed anything from anyone, ever',a:1,why:'Surprise. No history means no proof. A lender cannot tell if you are safe.'},
+      {q:'You close the oldest account you have',a:1,why:'Also surprising. Your oldest account proves how long you have been reliable.'}];
+    quiz($('#q',el),T.map(t=>({q:t.q,o:['Score goes up','Score goes down'],a:t.a,why:t.why})),
+      (right,total)=>{ctx.record({score:[right,total]});ctx.work();});
+    $('#ir',el).addEventListener('input',draw);$('#mr',el).addEventListener('input',draw);draw();
+  }
+});
+
+/* ---------------- DAY 9 ---------------- */
+DAYS.push({
+  n:9,emoji:'\u{1F95A}',color:'var(--mint)',title:'Own a slice',sub:'Run it enough times to see the pattern',
+  recall:{q:'A credit score is really a record of...',o:['how much money you have','whether you pay people back','how much you earn'],a:1,
+    why:'Only that. Not how rich you are. Whether you do what you said you would do.'},
+  lesson:`<p>A company is a thing that makes money, cut into slices. Own a slice and you own that share of what it earns. A slice is called a <strong>share</strong>.</p>
+  <p>You have $100. Put it all in the company you like best, or $20 into each of five. Spreading it out will not win you the most. It stops one piece of bad luck taking everything.</p>
+  <p>One run proves nothing. Run it at least three times and keep score.</p>`,
+  predict:{q:'Over five years, which ends up bigger more often?',
+    o:['the single company','the five spread out','about the same'],a:1,
+    note:'Both grow at the same average rate. Only the bumpiness differs.'},
+  build(el,ctx){
+    const CO=[['\u{1F366}','Chill Ice Cream'],['\u{1F45F}','Zoom Sneakers'],['\u{1F3AE}','PixelPlay Games'],['\u{1F32E}','Taco Truck Co.'],['\u{1F50B}','Bright Batteries']];
+    const M=[-52,-36,-20,-6,2,13,19,26,35,44,58,82];
+    const GOOD=['landed a giant order','went viral','opened in three new cities','had its best year yet'];
+    const BAD=['had a factory problem','got beaten by a rival','lost its biggest customer','had a bad summer'];
+    let choice=0,runs=carried(9,'runs',0),spreadWins=carried(9,'spreadWins',0);
+    el.innerHTML=`<div class="panel"><h3>Pick the one you would go all in on</h3>
+      <div class="cards" id="picks" style="margin-bottom:14px"></div>
+      <button class="btn primary wide" id="run">Run five years</button>
+      <div class="notice" id="tallyBox" style="${runs?'':'display:none'}"></div><div id="out"></div></div>`;
+    const drawTally=()=>{const t=$('#tallyBox',el);t.style.display='block';
+      t.innerHTML=`Your own record so far: <b>${runs}</b> run${runs===1?'':'s'}, the spread came out ahead <b>${spreadWins}</b> time${spreadWins===1?'':'s'}.${runs<3?' Three runs minimum before the badge.':''}`;};
+    const picks=$('#picks',el);
+    const drawPicks=()=>{picks.innerHTML=CO.map((c,i)=>`<button class="pickable ${i===choice?'sel':''}" data-i="${i}">${c[0]} &nbsp;${c[1]}</button>`).join('');};
+    picks.addEventListener('click',e=>{const b=e.target.closest('.pickable');if(!b)return;choice=+b.dataset.i;drawPicks();});
+    if(runs)drawTally();
+    $('#run',el).addEventListener('click',()=>{
+      let all=100,sp=[20,20,20,20,20],rows=[],best=-99,worst=99;
+      for(let y=1;y<=5;y++){
+        const mv=CO.map(()=>pick(M)),pAll=all,pSp=sp.reduce((a,b)=>a+b,0);
+        all*=1+mv[choice]/100;sp=sp.map((v,i)=>v*(1+mv[i]/100));
+        const sTot=sp.reduce((a,b)=>a+b,0),aP=(all/pAll-1)*100;
+        best=Math.max(best,aP);worst=Math.min(worst,aP);
+        rows.push({y:y,all:all,sTot:sTot,aP:aP,sP:(sTot/pSp-1)*100,head:CO[choice][0]+' '+CO[choice][1]+' '+pick(mv[choice]<0?BAD:GOOD)});
+      }
+      const sF=sp.reduce((a,b)=>a+b,0);
+      runs++; if(sF>all)spreadWins++;
+      $('#out',el).innerHTML=`<table class="mini"><thead><tr><th>Year</th><th>All in one</th><th>All five</th></tr></thead><tbody>
+        ${rows.map(r=>`<tr><td>${r.y}</td><td class="tnum ${r.aP<0?'down':'up'}">${money(r.all)}</td><td class="tnum ${r.sP<0?'down':'up'}">${money(r.sTot)}</td></tr>`).join('')}</tbody></table>
+        <div class="headline">${rows[0].head} in year one. That one piece of news swung all $100 of the single bet, and only $20 of the spread one.</div>
+        <div class="split" style="margin-top:8px">
+        <div class="stat"><span class="big tnum">${money(rows[4].all)}</span><span class="lab2">all in ${CO[choice][1]} \u00b7 best year ${best>0?'+':''}${best.toFixed(0)}%, worst ${worst.toFixed(0)}%</span></div>
+        <div class="stat"><span class="big tnum">${money(sF)}</span><span class="lab2">spread over all five \u00b7 a much calmer ride</span></div></div>
+        ${runs>=3?`<p class="note" style="margin-top:11px">Across twenty thousand runs of this exact game the spread wins <b>58%</b> of the time, and it never goes to almost nothing. One run can say anything. That is exactly why one run is not evidence.</p>
+        <p class="note" style="margin-top:9px">Owning a slice of every company at once, instead of choosing, has a name. It is an <b>index fund</b>, and it is what most people who are good at this actually buy.</p>`:''}`;
+      drawTally();
+      $('#run',el).textContent='Run it again';
+      ctx.record({carry:{runs:runs,spreadWins:spreadWins}});
+      if(runs>=3)ctx.work();
+    });
+    drawPicks();
+  }
+});
+
+/* ---------------- DAY 10 ---------------- */
+DAYS.push({
+  n:10,emoji:'\u{1F3A4}',color:'var(--grape)',title:'Say the thing',sub:'Read fast. Ask well.',
+  recall:{q:'Owning a slice of every company at once is called...',o:['an index fund','a loan','a budget'],a:0,
+    why:'An index fund. One thing to buy instead of five guesses to get right.'},
+  lesson:`<p>Two skills worth more than all the maths. Pull the three facts that matter out of something long. Then ask for what you want so that yes is easy.</p>
+  <p>Banks spend a whole day of their course on this. It is mostly practice.</p>`,
+  predict:{q:'What is the most useful question to ask about a company?',
+    o:['How big is it?','What happens next?','Who runs it?'],a:1,
+    note:'All three are worth knowing. One of them is what you are actually buying.'},
+  build(el,ctx){
+    el.innerHTML=`<div class="panel"><h3>Find the three that matter</h3>
+      <div class="news"><h4>Bright Batteries tells everyone how the year went</h4>
+      <p style="margin:0">Bright Batteries said on Tuesday that it sold 40% more batteries than last year. Making them cost a lot more, so profit still fell by 12%. A new factory opens in June, which the company says will cut the cost of every battery it builds. The boss, in a blue suit, called the results "exciting" four times in nine minutes.</p></div>
+      <p class="note" style="margin:12px 0 0">Tap the three that would change your mind about owning a slice.</p>
+      <div class="pick-list" id="facts"></div><div class="why" id="fw" style="margin-top:12px"></div></div>
+      <div class="panel"><h3>Build your ask</h3>
+      <p class="note" style="margin-bottom:12px">A good ask has four parts and takes about fifteen seconds.</p>
+      <label class="ctl"><span class="lab"><span>What do you want?</span></span><input type="text" id="f1" placeholder="my allowance to go up to $12 a week"></label>
+      <label class="ctl"><span class="lab"><span>Who are you asking?</span></span><input type="text" id="f2" placeholder="Dad"></label>
+      <label class="ctl"><span class="lab"><span>Why is it good for them?</span></span><input type="text" id="f3" placeholder="you stop getting asked for money at the shops"></label>
+      <label class="ctl"><span class="lab"><span>What will you do in return?</span></span><input type="text" id="f4" placeholder="take the bins out every week without being told"></label>
+      <button class="btn primary wide" id="mk">Build my ask</button><div class="script" id="sc"></div></div>`;
+    const F=[['Sales grew 40%',1,'Real. The thing people want is selling much better.'],
+      ['The boss wore a blue suit',0,'Noise.'],
+      ['Profit fell 12%',1,'Real, and the tension in the story. Selling more, keeping less.'],
+      ['It was announced on a Tuesday',0,'Noise.'],
+      ['A new factory in June will cut the cost of each battery',1,'Real. The what-happens-next part, which is the bit you are actually buying.'],
+      ['The word "exciting" came up four times',0,'Noise, and a mild warning sign.']];
+    const facts=$('#facts',el);let sel=[],picked=false,asked=false;
+    const check=()=>{if(picked&&asked)ctx.work();};
+    facts.innerHTML=F.map((f,i)=>`<button class="pickable" data-i="${i}">${f[0]}</button>`).join('');
+    facts.addEventListener('click',e=>{
+      const b=e.target.closest('.pickable');if(!b||picked)return;
+      if(sel.length>=3&&!b.classList.contains('sel'))return;
+      const i=+b.dataset.i;
+      if(b.classList.contains('sel')){b.classList.remove('sel');sel=sel.filter(x=>x!==i);}
+      else{b.classList.add('sel');sel.push(i);}
+      if(sel.length===3){
+        picked=true;
+        facts.querySelectorAll('.pickable').forEach((x,j)=>{x.classList.remove('sel');
+          if(sel.indexOf(j)>-1){x.classList.add(F[j][1]?'right':'wrong');x.textContent=(F[j][1]?TICK:CROSS)+x.textContent;}});
+        const got=sel.filter(i=>F[i][1]).length;
+        const w=$('#fw',el);w.classList.add('on');
+        w.innerHTML=`<b>${got} of 3.</b><br>`+F.map(f=>`${f[1]?TICK:CROSS}${f[0]} \u2014 ${f[2]}`).join('<br>')
+          +'<br><br><b>Now build the ask below. The badge needs both halves.</b>';
+        ctx.record({score:[got,3]});check();
+      }
+    });
+    $('#mk',el).addEventListener('click',()=>{
+      const s=$('#sc',el);
+      if(!$('#f1',el).value.trim()){s.classList.add('on');
+        s.innerHTML='<p class="note" style="margin:0">Fill in what you actually want first. That is the whole ask.</p>';
+        $('#f1',el).focus();return;}
+      const v=n=>esc($('#f'+n,el).value.trim()||$('#f'+n,el).placeholder);
+      s.classList.add('on');
+      s.innerHTML=`<p style="margin-bottom:10px"><em>${v(2)}, can I ask you something?</em> I would like <em>${v(1)}</em>. I think it works for you too, because <em>${v(3)}</em>. And in return, <em>${v(4)}</em>. Can we try it for a month and see?</p>
+        <p class="note" style="margin:0">Now say it out loud, standing up, looking at them. Then the hard part. Stop talking and wait for the answer.</p>`;
+      asked=true;check();
+    });
+  }
+});
+
+/* ================= shell ================= */
+const board=$('#board'),dayView=$('#dayView'),home=$('#home'),mast=$('.masthead');
+const extra=document.createElement('div');board.insertAdjacentElement('afterend',extra);
+
+function stats(){
+  let pT=0,pR=0,qR=0,qT=0;
+  for(let n=1;n<=10;n++){const r=state.res[n];if(!r)continue;
+    if(r.pred===true){pT++;pR++;}else if(r.pred===false){pT++;}
+    if(r.score){qR+=r.score[0];qT+=r.score[1];}}
+  return{pT:pT,pR:pR,qR:qR,qT:qT};
+}
+function tally(){
+  const n=state.done.length;
+  $('#tallyFill').style.width=(n*10)+'%';
+  $('#tallyText').textContent=n+' of 10 badges';
+}
+function renderBoard(justDone,msg){
+  board.innerHTML=DAYS.map(d=>{
+    const lock=isLocked(d.n),r=state.res[d.n]||{};
+    let chip='';
+    if(isDone(d.n)){
+      const bits=[];
+      if(r.pred===true)bits.push(TICK+'called it');else if(r.pred===false)bits.push(CROSS+'missed the call');
+      if(r.score)bits.push(r.score[0]+'/'+r.score[1]);
+      chip=bits.length?`<span class="chip">${bits.join(' \u00b7 ')}</span>`:'';
+    }
+    return`<button class="badge ${isDone(d.n)?'done':''} ${lock?'locked':''}" style="--c:${d.color}" data-n="${d.n}"
+      ${lock?`aria-disabled="true" aria-label="Day ${d.n}, ${d.title}. Locked until day ${d.n-1} is finished."`:''}>
+      <span class="day-no">Day ${d.n}</span><span class="emoji">${d.emoji}</span>
+      <span class="b-title">${d.title}</span><span class="b-sub">${d.sub}</span>${chip}
+      ${lock?'<span class="lock">\u{1F512}</span>':isDone(d.n)?`<span class="stamp ${justDone===d.n?'pop':''}">\u2605</span>`:''}</button>`;}).join('');
+  const s=stats();
+  const rec=state.done.length||s.pT?`<div class="record"><h3>Your camp record</h3><div class="rec-grid">
+    <div class="stat"><span class="big tnum">${s.pR} of ${s.pT}</span><span class="lab2">predictions called right</span></div>
+    <div class="stat"><span class="big tnum">${s.qT?s.qR+' of '+s.qT:'\u2014'}</span><span class="lab2">quiz answers right</span></div></div>
+    ${carried(3,'growPct',null)!==null?`<p class="note" style="margin:11px 0 0">Your split: ${carried(3,'spend',0)}% spend, ${carried(3,'save',0)}% save, ${carried(3,'growPct',0)}% grow, ${carried(3,'give',0)}% give.</p>`:''}
+    ${carried(4,'bestHr',null)!==null?`<p class="note" style="margin:6px 0 0">Best price you found for the stand: ${money(carried(4,'bestHr',0),2)} an hour.</p>`:''}
+    ${carried(9,'runs',0)?`<p class="note" style="margin:6px 0 0">You ran the five-year game ${carried(9,'runs',0)} times. The spread won ${carried(9,'spreadWins',0)}.</p>`:''}
+    </div>`:'';
+  extra.innerHTML=(msg?`<div class="notice">${msg}</div>`:'')+rec;
+  tally();renderCert();
+}
+board.addEventListener('click',e=>{
+  const b=e.target.closest('.badge');if(!b)return;
+  const n=+b.dataset.n;
+  if(isLocked(n)){renderBoard(null,'Day '+(n-1)+' first. Each day starts with a question about the one before it.');return;}
+  openDay(n);
+});
+
+function openDay(n){
+  const d=DAYS[n-1];
+  dayView.style.setProperty('--c',d.color);
+  let worked=false,verdictShown=false,sel=null;
+  dayView.innerHTML=`
+    <div class="backbar"><button class="btn" id="back">\u2190 All badges</button></div>
+    <div class="day-head"><div class="eyebrow">Day ${d.n} of 10</div><h2 id="dayTitle" tabindex="-1">${d.emoji} ${d.title}</h2></div>
+    ${d.recall?`<div class="panel gate" id="pRecall"><div class="step-lab">First, from last time</div>
+      <div class="qtext" style="font-weight:700;margin-bottom:11px;font-size:16px">${d.recall.q}</div>
+      <div class="opts" id="rOpts">${d.recall.o.map((o,i)=>`<button class="opt" data-i="${i}">${o}</button>`).join('')}</div>
+      <div class="why" id="rWhy">${d.recall.why}</div></div>`:''}
+    <div id="sLesson" class="${d.recall?'hide':''}">
+      <div class="panel lesson">${d.lesson}</div>
+      <div class="panel gate" id="pGuess"><div class="step-lab">Call it before you see it</div>
+        <div class="qtext" style="font-weight:700;margin-bottom:11px;font-size:16px">${d.predict.q}</div>
+        <div class="opts" id="gOpts">${d.predict.o.map((o,i)=>`<button class="opt" data-i="${i}">${o}</button>`).join('')}</div>
+        <p class="note" style="margin:11px 0 0">${d.predict.note}</p>
+        <div class="lockin"><button class="btn primary wide" id="lockBtn" disabled>Pick one first</button></div></div>
+      <div id="sLab" class="hide">
+        <div class="guessbar" id="gBar" aria-live="polite"></div><div id="lab"></div>
+        <div class="done-bar"><button class="btn primary wide" id="done" disabled>Finish the activity first</button></div></div>
+    </div>`;
+  $('#back',dayView).addEventListener('click',()=>closeDay());
+
+  if(d.recall){
+    $('#rOpts',dayView).addEventListener('click',e=>{
+      const b=e.target.closest('.opt');if(!b||b.disabled)return;
+      const i=+b.dataset.i,ok=(i===d.recall.a),btns=$('#rOpts',dayView).querySelectorAll('.opt');
+      btns.forEach(x=>x.disabled=true);
+      b.textContent=(ok?TICK:CROSS)+b.textContent;b.classList.add(ok?'pick-good':'pick-bad');
+      if(!ok){const c=btns[d.recall.a];c.textContent=TICK+c.textContent;c.classList.add('pick-good');}
+      $('#rWhy',dayView).classList.add('on');
+      $('#pRecall',dayView).classList.add('settled');
+      $('#sLesson',dayView).classList.remove('hide');
+    });
+  }
+
+  const ctx={guess:null,guessLabel:'',
+    record(o){const r=R(n);
+      if(o.score)r.score=o.score;
+      if(o.carry)r.carry=Object.assign(r.carry||{},o.carry);
+      save();},
+    work(){if(worked)return;worked=true;
+      const b=$('#done',dayView);b.disabled=false;b.textContent=isDone(n)?'Stamp it again':'Stamp my badge';
+      if(!verdictShown&&d.predict.a>=0)ctx.verdict(ctx.guess===d.predict.a);},
+    verdict(ok){if(verdictShown)return;verdictShown=true;
+      R(n).pred=!!ok;save();
+      $('#gBar',dayView).innerHTML=`You called it: <b>${esc(ctx.guessLabel)}</b>
+        <span class="verdict ${ok?'hit':'missed'}">${ok?TICK+'You were right.':CROSS+'It was '+esc(d.predict.o[d.predict.a])+'.'}</span>`;}};
+
+  $('#gOpts',dayView).addEventListener('click',e=>{
+    const b=e.target.closest('.opt');if(!b||b.disabled)return;
+    $('#gOpts',dayView).querySelectorAll('.opt').forEach(x=>x.classList.remove('chosen'));
+    b.classList.add('chosen');sel=+b.dataset.i;
+    const lb=$('#lockBtn',dayView);lb.disabled=false;lb.textContent='Lock in "'+d.predict.o[sel]+'"';
+  });
+  $('#lockBtn',dayView).addEventListener('click',()=>{
+    if(sel===null)return;
+    ctx.guess=sel;ctx.guessLabel=d.predict.o[sel];
+    $('#gOpts',dayView).querySelectorAll('.opt').forEach(x=>x.disabled=true);
+    const lb=$('#lockBtn',dayView);lb.disabled=true;lb.textContent='Locked in';
+    $('#pGuess',dayView).classList.add('settled');
+    $('#gBar',dayView).innerHTML=`You called it: <b>${esc(ctx.guessLabel)}</b>`;
+    $('#sLab',dayView).classList.remove('hide');
+    d.build($('#lab',dayView),ctx);
+  });
+
+  $('#done',dayView).addEventListener('click',()=>{
+    if(!isDone(n)){state.done.push(n);save();}
+    closeDay(n);
+  });
+  home.classList.add('off');mast.classList.add('hide');dayView.classList.add('on');window.scrollTo(0,0);
+  try{$('#dayTitle',dayView).focus({preventScroll:true});}catch(e){}
+}
+function closeDay(justDone){
+  const back=justDone||(dayView.querySelector('.badge')?null:null);
+  dayView.classList.remove('on');dayView.innerHTML='';
+  home.classList.remove('off');mast.classList.remove('hide');
+  renderBoard(justDone);window.scrollTo(0,0);
+  if(back){const b=board.querySelector('.badge[data-n="'+back+'"]');if(b)try{b.focus({preventScroll:true});}catch(e){}}
+}
+
+function renderCert(){
+  const slot=$('#certSlot');
+  if(state.done.length<10){slot.innerHTML='';return;}
+  const s=stats(),lines=[];
+  lines.push(`called <b>${s.pR} of ${s.pT}</b> predictions right, and got <b>${s.qR} of ${s.qT}</b> quiz answers`);
+  if(carried(3,'growPct',null)!==null)lines.push(`gives ${carried(3,'growPct',0)}% of everything to the Grow jar`);
+  if(carried(4,'bestHr',null)!==null)lines.push(`got a lemonade stand to ${money(carried(4,'bestHr',0),2)} an hour`);
+  if(carried(7,'purse',null)!==null)lines.push(`walked away from the waiting machine with ${money(carried(7,'purse',0),2)}`);
+  if(carried(6,'at60',null)!==null)lines.push(`is on track for ${money(carried(6,'at60',0))} by sixty, starting from ${money(carried(6,'weekly',5))} a week`);
+  slot.innerHTML=`<div class="cert"><div class="seal">\u{1F3C5}</div><h3>All ten badges</h3>
+    <div class="name" id="cn">${esc(state.name||'your name')}</div>
+    <p class="note" style="margin:0 0 12px">${lines.map(l=>l.charAt(0).toUpperCase()+l.slice(1)).join('. ')}.</p>
+    <input type="text" id="ni" placeholder="Type your name" value="${esc(state.name||'')}" style="max-width:280px"></div>`;
+  $('#ni').addEventListener('input',e=>{state.name=e.target.value;save();$('#cn').textContent=e.target.value||'your name';});
+}
+
+$('#grownBody').innerHTML=`
+  <p>Ten sittings of five to ten minutes. Each day runs in one order: a question about the day before, the idea, a prediction they must lock in, then the activity. The badge stays greyed out until the activity is genuinely finished, and days unlock one at a time because every recall question depends on the one before it.</p>
+  <h4>What finishing actually takes</h4>
+  <ul>
+    <li>Day 1: all twelve of Sam's purchases sorted.</li>
+    <li>Day 3: the jars adding to exactly 100%, because the day is called give every dollar a job.</li>
+    <li>Day 4: an actual price that beats $10 an hour. They commit to a price before seeing the result, so they cannot just sweep the slider.</li>
+    <li>Day 6: dragging past age 40, or the whole point never appears.</li>
+    <li>Day 9: three runs minimum, because one run of a random game proves nothing.</li>
+    <li>Day 10: both halves, the reading and the ask.</li>
+  </ul>
+  <h4>Why the prediction step matters</h4>
+  <p>Being wrong out loud is what makes the reveal stick. If they slide straight to the answer they will nod and forget it. Let them commit even when they have no idea, and resist telling them first.</p>
+  <h4>The one move worth more than all ten days</h4>
+  <p>Match their Grow jar. Every dollar they leave alone, you add one. A ten-year-old cannot feel 7% a year, but they can feel you doubling it on the spot, and the thing they are practising is leaving money alone.</p>
+  <h4>Take it off the screen</h4>
+  <ul>
+    <li>Day 1 uses Sam's month so there is something real to count. Then do theirs, with a week of actual receipts.</li>
+    <li>Four labelled jars or envelopes. Digital money is invisible at this age.</li>
+    <li>A real savings account in their name, and let them read the statement.</li>
+    <li>Hand over a real budget, like school lunches or clothes for a term, and let them keep what is left. Let them run out, too.</li>
+    <li>After Day 9, one share of a broad index fund in a custodial account beats any lecture about diversification.</li>
+  </ul>
+  <h4>Honest about the numbers</h4>
+  <p>Day 6 uses one fixed run of realistic market years averaging about 7%, with a 35% fall along the way, and shows the total in today's money as well. It is a made-up fifty years, not a forecast, and deliberately not a smooth curve.</p>
+  <h4>Ages</h4>
+  <p>Built for 9 to 12. Days 1, 2, 5 and 7 work from about 7. Day 8 is the stretch, worth coming back to at 12.</p>
+  <label class="sw"><input type="checkbox" id="freeRoam" ${state.free?'checked':''}> Let them jump to any day</label>
+  <p class="note" style="margin-top:6px">Off by default. The recall questions assume they went in order.</p>
+  <p style="margin-top:16px"><button class="btn" id="reset">Erase everything</button></p>`;
+
+$('#freeRoam').addEventListener('change',e=>{state.free=e.target.checked;save();renderBoard();});
+let armed=false,armTimer=null;
+$('#reset').addEventListener('click',e=>{
+  const b=e.currentTarget;
+  if(!armed){armed=true;b.classList.add('danger');b.textContent='Tap again to erase badges and record';
+    armTimer=setTimeout(()=>{armed=false;b.classList.remove('danger');b.textContent='Erase everything';},5000);return;}
+  clearTimeout(armTimer);armed=false;b.classList.remove('danger');b.textContent='Erase everything';
+  state={done:[],name:'',free:state.free,res:{}};save();renderBoard();
+});
+
+renderBoard();
+</script>
+</body>
+</html>
