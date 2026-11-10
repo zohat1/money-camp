@@ -220,6 +220,60 @@ details.grown[open] summary::after{content:"\2013"}
 .opt.chosen{background:var(--ink);color:var(--canvas)}
 label.sw{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;margin-top:8px}
 label.sw input{width:22px;height:22px;accent-color:var(--mint)}
+
+.hud{display:flex;gap:9px;margin-top:12px;flex-wrap:wrap;align-items:center}
+.coinpill{display:inline-flex;align-items:center;gap:6px;border:2px solid var(--line);border-radius:99px;background:var(--panel);
+  padding:5px 12px;font-weight:700;font-size:14.5px;white-space:nowrap}
+.coinpill b{font-family:"Bricolage Grotesque",sans-serif;font-size:17px}
+.btn.small{padding:5px 12px;font-size:14.5px;border-width:2px;border-radius:99px;box-shadow:2px 2px 0 var(--shadow)}
+.flag{font-size:27px;letter-spacing:3px;margin-top:12px;line-height:1.2}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:18px}
+.tab{border:3px solid var(--line);border-radius:var(--r-md);background:var(--panel);color:var(--ink);font-weight:700;
+  font-size:12.5px;line-height:1.2;padding:8px 2px;display:flex;flex-direction:column;align-items:center;gap:3px;box-shadow:3px 3px 0 var(--shadow)}
+.tab .temoji{font-size:21px;line-height:1}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--canvas);box-shadow:none;transform:translate(2px,2px)}
+@media(min-width:620px){.tab{font-size:14.5px}}
+.view{display:none;margin-top:26px}
+.view.on{display:block}
+.view .board{margin-top:0}
+.floaty{position:fixed;left:50%;top:36%;z-index:70;pointer-events:none;font-family:"Bricolage Grotesque",sans-serif;font-weight:800;
+  font-size:24px;color:var(--ink);background:var(--panel);border:3px solid var(--line);border-radius:99px;padding:4px 16px;
+  box-shadow:3px 3px 0 var(--shadow);transform:translateX(-50%);animation:floatUp 1.1s ease-out forwards}
+@keyframes floatUp{0%{transform:translate(-50%,10px) scale(.7);opacity:0}20%{transform:translate(-50%,0) scale(1.1);opacity:1}
+  70%{opacity:1}100%{transform:translate(-50%,-80px) scale(1);opacity:0}}
+.confetti i{position:fixed;top:-20px;width:9px;height:14px;border-radius:2px;z-index:60;pointer-events:none;animation:fall 1.6s linear forwards}
+@keyframes fall{to{top:105vh;transform:rotate(720deg)}}
+.shop{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(min-width:620px){.shop{grid-template-columns:repeat(4,1fr)}}
+.shopitem{border:3px solid var(--line);border-radius:var(--r-md);background:var(--panel-2);color:var(--ink);padding:12px 8px;
+  display:flex;flex-direction:column;align-items:center;gap:4px;font-weight:700;font-size:15px}
+.shopitem .semoji{font-size:34px;line-height:1.1}
+.shopitem .sprice{font-size:13.5px;color:var(--muted)}
+.shopitem.own{background:var(--panel);border-style:dashed}
+.shopitem.cant .semoji{filter:grayscale(1);opacity:.6}
+.words{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(min-width:620px){.words{grid-template-columns:repeat(3,1fr)}}
+.wcard{text-align:left;border:3px solid var(--line);border-radius:var(--r-md);background:var(--panel);color:var(--ink);
+  padding:12px;min-height:118px;display:flex;flex-direction:column;gap:5px;box-shadow:3px 3px 0 var(--shadow);font-size:14px;line-height:1.35}
+.wcard .wemoji{font-size:26px;line-height:1}
+.wcard .wname{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:17px;line-height:1.1}
+.wcard .wdef{color:var(--muted)}
+.wcard.flip{background:var(--c);color:var(--on-accent)}
+.wcard.flip .wdef{color:var(--on-accent)}
+.wcard.shut{opacity:.5;box-shadow:none;border-style:dashed}
+.mission{display:flex;align-items:center;gap:11px;border:3px solid var(--line);border-radius:var(--r-md);padding:10px;
+  background:var(--panel-2);margin-top:10px;font-size:14.5px;line-height:1.35}
+.mission .mtxt{flex:1;min-width:0}
+.mission .mday{font-weight:700;font-size:12.5px;color:var(--muted);display:block}
+.mission .btn{flex:none}
+.mission.did{border-style:dashed}
+.firebig{font-size:44px;text-align:center;line-height:1.1;margin:4px 0 10px;min-height:50px}
+.sellanim{font-size:22px;line-height:1.3;word-break:break-all}
+@media print{
+  .masthead,.board,#extraSlot,#missionSlot,details.grown,.day-view,.cert input,.cert .btn,.floaty,.confetti{display:none !important}
+  .view{display:none !important}#v-board{display:block !important}
+  body{background:#fff}.cert{box-shadow:none;margin-top:40px}
+}
 @media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
 </style>
 </head>
@@ -231,10 +285,29 @@ label.sw input{width:22px;height:22px;accent-color:var(--mint)}
     <p class="tagline">The stuff banks teach heirs at 22, built for a ten-year-old who'd rather play than read.</p>
     <div class="tally"><div class="tally-track"><div class="tally-fill" id="tallyFill"></div></div>
       <div class="tally-text" id="tallyText">0 of 10 badges</div></div>
+    <div class="hud">
+      <span class="coinpill" title="Camp coins in your wallet">🪙 <b class="coin-count tnum">0</b> coins</span>
+      <span class="coinpill" title="Camp coins in the vault">🏦 <b class="vault-count tnum">0</b> in the vault</span>
+      <button class="btn small" id="mute">🔊 Sound on</button>
+    </div>
+    <div class="flag" id="flag" aria-label="Your camp flag stickers"></div>
+    <div class="tabs" id="tabs" role="tablist">
+      <button class="tab" role="tab" data-v="board" aria-selected="true"><span class="temoji">🏕️</span>Badges</button>
+      <button class="tab" role="tab" data-v="fire" aria-selected="false"><span class="temoji">🔥</span>Campfire</button>
+      <button class="tab" role="tab" data-v="post" aria-selected="false"><span class="temoji">🏪</span>Trading post</button>
+      <button class="tab" role="tab" data-v="words" aria-selected="false"><span class="temoji">🃏</span>Word cards</button>
+    </div>
   </header>
   <main class="home" id="home">
-    <div class="board" id="board"></div>
-    <div id="certSlot"></div>
+    <div class="view on" id="v-board">
+      <div class="board" id="board"></div>
+      <div id="extraSlot"></div>
+      <div id="missionSlot"></div>
+      <div id="certSlot"></div>
+    </div>
+    <div class="view" id="v-fire"></div>
+    <div class="view" id="v-post"></div>
+    <div class="view" id="v-words"></div>
     <details class="grown"><summary>Notes for the grown-up</summary><div class="grown-body" id="grownBody"></div></details>
   </main>
   <section class="day-view" id="dayView"></section>
@@ -252,13 +325,21 @@ const SEQ=[6,11,23,25,-3,-9,-4,12,34,9,8,26,25,-30,16,-16,1,1,20,7,-6,-2,-21,17,
 
 /* ================= saved progress ================= */
 const KEY='moneycamp.v3';
-let state={done:[],name:'',free:false,res:{}};
+const fresh=()=>({done:[],name:'',free:false,res:{},coins:0,vault:0,paid:{},stickers:[],missions:[],mute:false,fire:{best:0,last:''}});
+let state=fresh();
 try{const raw=localStorage.getItem(KEY);if(raw){const p=JSON.parse(raw);
   if(p&&Array.isArray(p.done))state=Object.assign(state,p);
   if(!state.res||typeof state.res!=='object'||Array.isArray(state.res))state.res={};
   state.done=[...new Set(state.done.filter(n=>Number.isInteger(n)&&n>=1&&n<=10))];
   if(typeof state.name!=='string')state.name='';
-  state.free=!!state.free;}}catch(e){state={done:[],name:'',free:false,res:{}};}
+  state.free=!!state.free;state.mute=!!state.mute;
+  const whole=v=>Number.isFinite(v)&&v>0?Math.floor(v):0;
+  state.coins=whole(state.coins);state.vault=whole(state.vault);
+  if(!state.paid||typeof state.paid!=='object'||Array.isArray(state.paid))state.paid={};
+  if(!Array.isArray(state.stickers))state.stickers=[];
+  if(!Array.isArray(state.missions))state.missions=[];
+  if(!state.fire||typeof state.fire!=='object')state.fire={best:0,last:''};
+  state.fire.best=whole(state.fire.best);if(typeof state.fire.last!=='string')state.fire.last='';}}catch(e){state=fresh();}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}};
 const isDone=n=>state.done.indexOf(n)>-1;
 const isLocked=n=>!state.free&&n>1&&!isDone(n-1);
@@ -268,8 +349,50 @@ function carried(day,key,fallback){
   return r&&r.carry&&r.carry[key]!==undefined?r.carry[key]:fallback;
 }
 
+/* ================= coins, sound, sparkle ================= */
+const COIN='\u{1FA99}',RATE=0.10;
+const calm=()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){return false;}};
+let AC=null;
+function sfx(k){
+  if(state.mute)return;
+  try{
+    AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+    if(AC.state==='suspended')AC.resume();
+    const n=AC.currentTime;
+    const T=(f,at,d,type,v)=>{const o=AC.createOscillator(),g=AC.createGain();o.type=type||'triangle';o.frequency.value=f;
+      g.gain.setValueAtTime(v||0.12,n+at);g.gain.exponentialRampToValueAtTime(0.001,n+at+d);
+      o.connect(g);g.connect(AC.destination);o.start(n+at);o.stop(n+at+d+0.03);};
+    if(k==='coin'){T(988,0,.08,'square',.05);T(1319,.07,.24,'square',.05);}
+    else if(k==='good'){T(660,0,.1);T(880,.09,.2);}
+    else if(k==='bad'){T(196,0,.26,'sawtooth',.06);}
+    else if(k==='stamp'){T(523,0,.12);T(659,.11,.12);T(784,.22,.12);T(1047,.33,.4);}
+    else if(k==='tap'){T(440,0,.05,'sine',.06);}
+  }catch(e){}
+}
+function floaty(t){
+  const f=document.createElement('div');f.className='floaty';f.setAttribute('aria-hidden','true');f.textContent=t;
+  document.body.appendChild(f);setTimeout(()=>f.remove(),1150);
+}
+function confetti(){
+  if(calm())return;
+  const box=document.createElement('div');box.className='confetti';box.setAttribute('aria-hidden','true');
+  const C=['var(--mint)','var(--tang)','var(--sun)','var(--grape)','var(--sky)','var(--berry)'];
+  for(let i=0;i<70;i++){const s=document.createElement('i');
+    s.style.cssText='left:'+(Math.random()*100)+'vw;background:'+pick(C)+';animation-delay:'+(Math.random()*.5)+'s;animation-duration:'+(1.2+Math.random())+'s';
+    box.appendChild(s);}
+  document.body.appendChild(box);setTimeout(()=>box.remove(),3200);
+}
+/* pays once per key, so replaying a day cannot farm coins. Returns what was paid. */
+function gain(key,amt,quiet){
+  if(key){if(state.paid[key])return 0;state.paid[key]=1;}
+  state.coins+=amt;save();updateHud();
+  floaty('+'+amt+' '+COIN);if(!quiet)sfx('coin');
+  return amt;
+}
+const mark=(ok,key,amt)=>{if(!ok)sfx('bad');else if(!gain(key,amt))sfx('good');};
+
 /* reusable quiz: reveals the right answer on a miss, marks with a glyph not just colour */
-function quiz(box,items,onDone){
+function quiz(box,items,onDone,key){
   box.innerHTML=items.map((it,i)=>`<div class="card-q"><div class="qtext">${it.q}</div>
     <div class="opts">${it.o.map((o,j)=>`<button class="opt" data-i="${i}" data-j="${j}">${o}</button>`).join('')}</div>
     <div class="why" data-w="${i}">${it.why}</div></div>`).join('');
@@ -282,6 +405,7 @@ function quiz(box,items,onDone){
     b.textContent=(ok?TICK:CROSS)+b.textContent;b.classList.add(ok?'pick-good':'pick-bad');
     if(!ok){const c=btns[it.a];c.textContent=TICK+c.textContent;c.classList.add('pick-good');}
     box.querySelector('[data-w="'+i+'"]').classList.add('on');
+    mark(ok,key?key+'.'+i:null,2);
     if(ok)right++;done++;
     if(done===items.length&&onDone)onDone(right,items.length);
   });
@@ -319,6 +443,7 @@ DAYS.push({
         stage.querySelector('.catgrid').addEventListener('click',e=>{
           const b=e.target.closest('.catbtn');if(!b)return;
           const j=+b.dataset.j,truth=ITEMS[i][2];
+          mark(j===truth,'s1.'+i,1);
           if(j===truth){right++;note='';}
           else note=CROSS+ITEMS[i][0]+' goes under '+CAT[truth][1]+'. Filed there so the count stays true.';
           tot[truth]+=ITEMS[i][1];i++;draw();
@@ -370,7 +495,7 @@ DAYS.push({
         <span class="lab2">Four were pure needs. You guessed ${esc(ctx.guessLabel)}.</span>
         <p class="note" style="margin:10px 0 0">Wants are not the enemy. Paying for one by accident is.</p>`;
       ctx.record({score:[right,total]});ctx.verdict(ctx.guess===1);ctx.work();
-    });
+    },'q2');
     $('#c',el).addEventListener('click',e=>{if(e.target.closest('.opt')){n=Math.min(10,n+1);$('#sc',el).textContent=n+' of 10';}});
   }
 });
@@ -442,8 +567,27 @@ DAYS.push({
       <button class="btn primary wide" id="go">Open the stand at this price</button>
       <div id="out"></div></div>`;
     $('#pr',el).addEventListener('input',e=>{$('#pv',el).textContent=money(+e.target.value,2);});
+    let busy=false;
     $('#go',el).addEventListener('click',()=>{
+      if(busy)return;
       const p=+$('#pr',el).value,cups=Math.max(0,Math.round(140-40*p));
+      if(calm()){show(p,cups);return;}
+      /* a few seconds of trading, so the result feels earned rather than looked up */
+      busy=true;const go=$('#go',el);go.disabled=true;go.textContent='Open for business...';
+      const FACES=['\u{1F9D2}','\u{1F469}','\u{1F474}','\u{1F6B4}','\u{1F415}','\u{1F467}','\u{1F468}','\u{1F475}'];
+      const t0=performance.now(),dur=1300;let last=-1;
+      (function frame(now){
+        const k=Math.min(1,(now-t0)/dur),sold=Math.round(cups*k);
+        if(sold!==last){last=sold;
+          $('#out',el).innerHTML='<div class="result"><span class="big tnum">\u{1F964} '+sold+' sold</span><div class="sellanim" aria-hidden="true">'
+            +Array.from({length:Math.min(14,Math.ceil(sold/9))},(_,i)=>FACES[i%FACES.length]).join('')+'</div>'
+            +'<span class="lab2">'+money(p,2)+' a cup. '+(p<=1?'There is a queue down the street.':p>=2.5?'People look at the sign and keep walking.':'A steady trickle of customers.')+'</span></div>';
+          if(sold%6===0)sfx('tap');}
+        if(k<1)requestAnimationFrame(frame);
+        else setTimeout(()=>{busy=false;go.disabled=false;go.textContent='Open the stand at this price';show(p,cups);},350);
+      })(t0);
+    });
+    function show(p,cups){
       const rev=cups*p,cost=cups*0.35+12,prof=rev-cost,hr=prof/4;
       if(!tries.some(t=>t.p===p)) tries.push({p:p,cups:cups,rev:rev,prof:prof,hr:hr});
       best=Math.max(best,hr);
@@ -454,8 +598,9 @@ DAYS.push({
         <div class="result"><span class="big tnum">${money(hr,2)} an hour</span>
         <span class="lab2">${hr>=20?'That is the band. Twice what chores pay, from the same four hours.':hr>=10?'Beats chores, but this is not the best your stand can do. Keep hunting.':'Still under the $10 chores pay. Change the price and open again.'}</span>
         <p class="note" style="margin:10px 0 0">${best>=20?'Look down the table. Revenue keeps climbing with the price. What you keep does not. Cheap sells buckets for nothing, dear sells almost none, and the money is in the middle.':tries.length>=4?'Hint: it is somewhere between $1.50 and $2.25. Both ends of the slider lose.':tries.length>2?'Look down the table. Revenue and profit stop moving together. Follow the last column, not the first.':'Try a few prices and watch the last two columns move differently.'}</p></div>`;
+      sfx(hr>=20?'good':hr>=10?'tap':'bad');
       if(best>=20){ctx.record({carry:{bestHr:+best.toFixed(2),tries:tries.length}});ctx.work();}
-    });
+    }
   }
 });
 
@@ -486,7 +631,7 @@ DAYS.push({
           <span class="lab2">The bigger pack won three times out of five. You guessed ${esc(ctx.guessLabel)}.</span>
           <p class="note" style="margin:10px 0 0">Shops know most people assume the big one is cheaper, so sometimes it quietly is not. Thirty seconds of dividing is worth real money over a year.</p>`;
         ctx.record({score:[right,total]});ctx.verdict(ctx.guess===2);ctx.work();
-      });
+      },'q5');
   }
 });
 
@@ -598,7 +743,7 @@ DAYS.push({
           <p class="note" style="margin:10px 0 0">You called ${right} of ${total} right, and guessed ${esc(ctx.guessLabel)} traps. The rule is never "always wait". It is <b>ask what the waiting pays</b>, then check it against 7% and 3%.</p>`;
         ctx.record({score:[right,total],carry:{purse:+purse.toFixed(2)}});
         ctx.verdict(ctx.guess===2);ctx.work();
-      });
+      },'q7');
   }
 });
 
@@ -635,7 +780,7 @@ DAYS.push({
       {q:'You have never borrowed anything from anyone, ever',a:1,why:'Surprise. No history means no proof. A lender cannot tell if you are safe.'},
       {q:'You close the oldest account you have',a:1,why:'Also surprising. Your oldest account proves how long you have been reliable.'}];
     quiz($('#q',el),T.map(t=>({q:t.q,o:['Score goes up','Score goes down'],a:t.a,why:t.why})),
-      (right,total)=>{ctx.record({score:[right,total]});ctx.work();});
+      (right,total)=>{ctx.record({score:[right,total]});ctx.work();},'q8');
     $('#ir',el).addEventListener('input',draw);$('#mr',el).addEventListener('input',draw);draw();
   }
 });
@@ -738,6 +883,7 @@ DAYS.push({
         facts.querySelectorAll('.pickable').forEach((x,j)=>{x.classList.remove('sel');
           if(sel.indexOf(j)>-1){x.classList.add(F[j][1]?'right':'wrong');x.textContent=(F[j][1]?TICK:CROSS)+x.textContent;}});
         const got=sel.filter(i=>F[i][1]).length;
+        if(got){if(!gain('q10',got*2))sfx('good');}else sfx('bad');
         const w=$('#fw',el);w.classList.add('on');
         w.innerHTML=`<b>${got} of 3.</b><br>`+F.map(f=>`${f[1]?TICK:CROSS}${f[0]} \u2014 ${f[2]}`).join('<br>')
           +'<br><br><b>Now build the ask below. The badge needs both halves.</b>';
@@ -758,9 +904,216 @@ DAYS.push({
   }
 });
 
+/* ================= trading post: stickers and the vault ================= */
+const STICKERS=[['tent','\u{1F3D5}️','Tent',15],['raccoon','\u{1F99D}','Raccoon',25],['marsh','\u{1F361}','Marshmallows',35],
+  ['canoe','\u{1F6F6}','Canoe',50],['owl','\u{1F989}','Night owl',70],['bear','\u{1F43B}','Bear',100],
+  ['volcano','\u{1F30B}','Volcano',150],['crown','\u{1F451}','Gold crown',250]];
+const owns=id=>state.stickers.indexOf(id)>-1;
+function updateHud(){
+  document.querySelectorAll('.coin-count').forEach(e=>e.textContent=state.coins);
+  document.querySelectorAll('.vault-count').forEach(e=>e.textContent=state.vault);
+  const m=$('#mute');if(m)m.textContent=state.mute?'\u{1F507} Sound off':'\u{1F50A} Sound on';
+  const f=$('#flag');if(f){const own=STICKERS.filter(k=>owns(k[0]));f.textContent=own.map(k=>k[1]).join(' ');f.style.display=own.length?'':'none';}
+}
+function renderPost(msg){
+  const left=10-state.done.length,next=state.vault>0?Math.max(1,Math.round(state.vault*RATE)):0;
+  $('#v-post').innerHTML=`<div class="panel" style="--c:var(--sun)"><h3>\u{1F3E6} The vault</h3>
+    <p class="note" style="margin-bottom:12px">Coins in your wallet just sit there. Coins in the vault earn <b>10% interest</b> every time you stamp a new badge. You can take them out whenever you like.</p>
+    <div class="split"><div class="stat"><span class="big tnum">${COIN} ${state.coins}</span><span class="lab2">in your wallet, earning nothing</span></div>
+      <div class="stat"><span class="big tnum">\u{1F3E6} ${state.vault}</span><span class="lab2">in the vault, growing</span></div></div>
+    <p class="note" style="margin:11px 0">${!left?'All ten badges are stamped, so the vault has stopped paying. Spend away.'
+      :state.vault?`Your next badge pays you <b>${next} coin${next===1?'':'s'}</b> for doing nothing at all.`
+      :'Nothing is in the vault, so your next badge pays no interest.'}</p>
+    <div class="opts"><button class="opt" data-v="10">Put 10 in</button><button class="opt" data-v="all">Put all in</button><button class="opt" data-v="out">Take all out</button></div>
+    ${msg?`<div class="notice" aria-live="polite">${msg}</div>`:''}</div>
+  <div class="panel"><h3>\u{1F3EA} Stickers for your camp flag</h3>
+    <p class="note" style="margin-bottom:12px">You cannot afford them all. That is on purpose. Stickers are paid for from your wallet, and they show on your flag and your certificate.</p>
+    <div class="shop">${STICKERS.map(k=>{const own=owns(k[0]),cant=!own&&state.coins<k[3];
+      return`<button class="shopitem ${own?'own':''} ${cant?'cant':''}" data-s="${k[0]}" ${own?'disabled':''}>
+        <span class="semoji">${k[1]}</span><span>${k[2]}</span><span class="sprice tnum">${own?TICK+'on your flag':COIN+' '+k[3]}</span></button>`;}).join('')}</div></div>`;
+}
+$('#v-post').addEventListener('click',e=>{
+  const v=e.target.closest('.opt'),s=e.target.closest('.shopitem');
+  if(v){
+    const k=v.dataset.v;let msg='';
+    if(k==='out'){if(!state.vault)msg='The vault is empty.';else{msg=state.vault+' coins back in your wallet. They stop earning from now.';state.coins+=state.vault;state.vault=0;}}
+    else{const amt=k==='all'?state.coins:Math.min(10,state.coins);
+      if(!amt)msg='Your wallet is empty. Earn some coins first.';
+      else{state.coins-=amt;state.vault+=amt;msg=amt+' coin'+(amt===1?'':'s')+' locked away and working for you.';}}
+    save();sfx('tap');updateHud();renderPost(msg);
+  }else if(s){
+    const k=STICKERS.find(x=>x[0]===s.dataset.s);if(!k||owns(k[0]))return;
+    if(state.coins<k[3]){sfx('bad');
+      renderPost('The '+k[2]+' costs '+k[3]+'. You are '+(k[3]-state.coins)+' short in your wallet'+(state.vault?', with '+state.vault+' more in the vault.':'.'));return;}
+    state.coins-=k[3];state.stickers.push(k[0]);save();sfx('coin');updateHud();
+    const lost=Math.max(1,Math.round(k[3]*RATE));
+    renderPost(k[1]+' '+k[2]+' is on your flag. '+(state.done.length<10
+      ?'In the vault those '+k[3]+' coins would have earned '+lost+' more at your next badge. Worth it? Only you can say.':'Good choice.'));
+  }
+});
+
+/* ================= word cards ================= */
+const WORDS=[
+  [1,'\u{1F9FE}','Spending log','Writing down every single buy, so you count where money went instead of guessing.'],
+  [2,'\u{1F9E6}','Need','Something that keeps you warm, fed, healthy or in school.'],
+  [2,'\u{1F3AE}','Want','Everything that is not a need. Wants are fine, as long as you pick them on purpose.'],
+  [3,'\u{1FAD9}','Budget','A plan that gives every dollar a job before you spend any of it.'],
+  [4,'\u{1F4B5}','Revenue','All the money that comes in when you sell something. Not all of it is yours to keep.'],
+  [4,'\u{1F34B}','Profit','What is left after you pay your costs. Revenue minus costs.'],
+  [5,'\u{1F50E}','Unit price','Price divided by amount. It lets you compare a big box with a small one fairly.'],
+  [6,'❄️','Compound growth','Your money earns extra, then the extra earns extra too. A snowball rolling downhill.'],
+  [6,'\u{1F977}','Inflation','Prices creeping up a bit each year, so the same $10 buys less. The thief.'],
+  [7,'⏳','Interest','The payment for waiting. You earn it when you save or lend, and you pay it when you borrow.'],
+  [8,'\u{1F6B2}','Loan','Money you rent from someone else. You give it all back, plus interest.'],
+  [8,'\u{1F91D}','Credit score','A number that says one thing: do you pay people back when you said you would.'],
+  [9,'\u{1F355}','Share','One slice of a company. Own a slice and you own that bit of what it earns.'],
+  [9,'\u{1F95A}','Diversify','Spreading your money over lots of things, so one bad break cannot take it all.'],
+  [9,'\u{1F9FA}','Index fund','One thing you buy that holds a slice of hundreds of companies at once.'],
+  [10,'\u{1F3A4}','Pitch','Asking for what you want in a way that makes yes easy: what, why it helps them, what you give back.']];
+const flipped={};
+function renderWords(){
+  const have=WORDS.filter(w=>isDone(w[0])).length;
+  $('#v-words').innerHTML=`<div class="row"><h3 style="font-size:22px">Word cards</h3><span class="tally-text">${have} of ${WORDS.length} collected</span></div>
+    <p class="note" style="margin-bottom:14px">Every badge unlocks the words that go with it. Tap a card to flip it. If you can explain a card to a grown-up without looking, you own that word.</p>
+    <div class="words">${WORDS.map((w,i)=>{const open=isDone(w[0]),col=DAYS[w[0]-1].color;
+      return open?`<button class="wcard ${flipped[i]?'flip':''}" style="--c:${col}" data-i="${i}" aria-expanded="${!!flipped[i]}">
+          <span class="wemoji">${w[1]}</span><span class="wname">${w[2]}</span>
+          <span class="wdef">${flipped[i]?w[3]:'Tap to flip'}</span></button>`
+        :`<div class="wcard shut"><span class="wemoji">\u{1F512}</span><span class="wname">? ? ?</span><span class="wdef">Stamp Day ${w[0]} to collect</span></div>`;}).join('')}</div>`;
+}
+$('#v-words').addEventListener('click',e=>{const b=e.target.closest('button.wcard');if(!b)return;
+  flipped[b.dataset.i]=!flipped[b.dataset.i];sfx('tap');renderWords();
+  const again=$('#v-words button.wcard[data-i="'+b.dataset.i+'"]');if(again)try{again.focus({preventScroll:true});}catch(err){}});
+
+/* ================= real-life missions ================= */
+const MISSIONS=[
+  'Write down every single thing you buy for three days. Guess the total before you add it up.',
+  'Find three things in your room: one need, one want, and one that is a bit of both.',
+  'Make four real jars or envelopes, label them, and split the next money you get.',
+  'Earn at least $1 doing a job for someone. Name your price before you start.',
+  'In a real shop, find one bigger pack that is NOT the better deal. Do the division.',
+  'Ask a grown-up what a chocolate bar or a cinema ticket cost when they were ten. That gap is the thief.',
+  'Next time you badly want something, wait 48 hours. Then decide if you still want it.',
+  'Borrow something small from someone and give it back exactly when you promised.',
+  'Name five companies whose stuff you used today. You could own a slice of every one.',
+  'Say your ask from Day 10 out loud to the real person. Then stop talking and wait.'];
+function renderMissions(){
+  const slot=$('#missionSlot'),open=DAYS.filter(d=>isDone(d.n));
+  if(!open.length){slot.innerHTML='';return;}
+  slot.innerHTML=`<div class="record"><h3>Missions for real life</h3>
+    <p class="note" style="margin:0">Away from the screen, with real money. Five coins each. Be honest, a grown-up may ask.</p>
+    ${open.map(d=>{const did=state.missions.indexOf(d.n)>-1;
+      return`<div class="mission ${did?'did':''}"><span class="jicon" style="font-size:24px">${d.emoji}</span>
+        <span class="mtxt"><span class="mday">Day ${d.n} mission</span>${MISSIONS[d.n-1]}</span>
+        ${did?`<span class="up">${TICK}Done</span>`:`<button class="btn small" data-m="${d.n}">I did it</button>`}</div>`;}).join('')}</div>`;
+}
+$('#missionSlot').addEventListener('click',e=>{const b=e.target.closest('[data-m]');if(!b)return;
+  const n=+b.dataset.m;if(state.missions.indexOf(n)>-1)return;
+  if(!b.dataset.sure){b.dataset.sure='1';b.textContent='Really? Tap again';return;}
+  state.missions.push(n);save();gain('m'+n,5);renderMissions();renderCert();});
+
+/* ================= campfire quiz: old questions, coming back ================= */
+const FIRE=[
+  {d:1,q:'The best way to know where your money goes is to...',o:['guess','write down every buy','ask a friend'],a:1,why:'Everybody guesses wrong. Counting is the only way to know.'},
+  {d:1,q:'Most of Sam\'s money left in...',o:['one big toy','small snacks adding up','a present'],a:1,why:'Bits of $2 and $3, over and over.'},
+  {d:2,q:'Delivery when the fridge is full is a...',o:['need','want'],a:1,why:'You are not buying food. You are buying not-cooking.'},
+  {d:2,q:'Are wants bad?',o:['Yes, always','No, just pick them on purpose'],a:1,why:'Wants are fine. Paying for one by accident is the problem.'},
+  {d:3,q:'A plan that gives every dollar a job is a...',o:['budget','loan','share'],a:0,why:'A budget. All of it, not most of it.'},
+  {d:3,q:'You get $20 and save 25% of it. How much is that?',o:['$2.50','$5','$25'],a:1,why:'A quarter of $20 is $5.'},
+  {d:4,q:'You sell $50 of lemonade. Lemons and cups cost $30. What is your profit?',o:['$50','$30','$20'],a:2,why:'$50 in, $30 out, $20 stays with you.'},
+  {d:4,q:'True or false: a higher price always means more profit.',o:['True','False'],a:1,why:'Too dear and almost nobody buys. The money is in the middle.'},
+  {d:5,q:'Which is the better deal?',o:['10 stickers for $2','30 stickers for $5'],a:1,why:'20c each against about 17c each.'},
+  {d:5,q:'Why do games sell gems instead of charging dollars?',o:['Gems look nicer','So you do not feel the dollars leaving','It is the law'],a:1,why:'Once it is gems, your brain stops counting real money.'},
+  {d:6,q:'Prices creeping up every year is called...',o:['inflation','interest','profit'],a:0,why:'Inflation. The thief in the room.'},
+  {d:6,q:'Same weekly amount. Who ends up with more?',o:['The one who starts at 10','The one who starts at 20','It is the same'],a:0,why:'Ten extra years of growing beats almost anything else.'},
+  {d:6,q:'Your money grows 2% a year. Prices grow 3%. You are getting...',o:['richer','slightly poorer'],a:1,why:'The pile is bigger but it buys less. You have to beat the thief.'},
+  {d:7,q:'$10 now, or $10.10 in a year?',o:['Take it now','Wait'],a:0,why:'1% for a whole year loses to prices going up 3%.'},
+  {d:7,q:'$10 now, or $13 next week?',o:['Take it now','Wait'],a:1,why:'30% in a week. Nothing else comes close. Wait.'},
+  {d:8,q:'The rent you pay on borrowed money is called...',o:['profit','interest','a share'],a:1,why:'Interest, pointed at you this time.'},
+  {d:8,q:'The best thing for a trust score is to...',o:['borrow lots at once','pay back on time, every time','never borrow at all'],a:1,why:'Boring and reliable, for years.'},
+  {d:9,q:'You spread money over many companies to...',o:['win the most','stop one bad break taking everything'],a:1,why:'Spreading does not win biggest. It stops you losing it all.'},
+  {d:9,q:'One lucky run of a random game proves...',o:['you are a genius','not much'],a:1,why:'One run can say anything. That is why you ran it three times.'},
+  {d:10,q:'In a company report, which matters most?',o:['What the boss wore','What happens next','The day of the week'],a:1,why:'What happens next is the thing you are actually buying.'},
+  {d:10,q:'A good ask explains why it is good for...',o:['only you','them too'],a:1,why:'Make yes easy for the other person.'}];
+let fire=null;
+const today=()=>new Date().toDateString();
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function firePool(){
+  const P=[];
+  DAYS.forEach(d=>{if(d.recall&&isDone(d.n-1))P.push(d.recall);});
+  FIRE.forEach(f=>{if(isDone(f.d))P.push(f);});
+  return P;
+}
+const flames=n=>n>=6?'\u{1F525}\u{1F525}\u{1F525}':n>=3?'\u{1F525}\u{1F525}':n>=1?'\u{1F525}':'\u{1FAB5}';
+function renderFire(){
+  const v=$('#v-fire');
+  if(!fire){
+    const pool=firePool(),paid=state.fire.last===today();
+    v.innerHTML=`<div class="panel" style="--c:var(--tang)"><h3>\u{1F525} Campfire quiz</h3>
+      <p>Quick questions from the badges you already have. Every right answer in a row feeds the fire.</p>
+      <p class="note">${!pool.length?'There is only a pile of logs here. Stamp your first badge and the fire gets lit.'
+        :paid?'The campfire has already paid out today. Play for the streak, and come back tomorrow for more coins.'
+        :'One coin for every right answer, plus three for a perfect round. The campfire pays once a day.'}</p>
+      ${state.fire.best?`<div class="stat" style="margin-bottom:14px"><span class="big tnum">${flames(state.fire.best)} ${state.fire.best} in a row</span><span class="lab2">your longest streak so far</span></div>`:''}
+      <button class="btn primary wide" id="fireGo" ${pool.length?'':'disabled'}>${pool.length?'Light the fire':'Nothing to burn yet'}</button></div>`;
+    return;
+  }
+  if(fire.i>=fire.qs.length){
+    const n=fire.qs.length;
+    v.innerHTML=`<div class="panel" style="--c:var(--tang)"><div class="firebig" aria-hidden="true">${flames(fire.top)}</div>
+      <div class="result" style="margin-top:0"><span class="big tnum">${fire.right} of ${n}</span>
+      <span class="lab2">Longest streak this round: ${fire.top} in a row.${fire.top>=state.fire.best&&fire.top>0?' That matches or beats your best.':''}</span>
+      <p class="note" style="margin:10px 0 0">${fire.pay?'The campfire paid you '+fire.pay+' coins'+(fire.right===n?', perfect-round bonus included.':'.')
+        :fire.paidOut?'No coins this time, the campfire had already paid today. The remembering still counts.':'No coins this round. The ones you missed will come round again.'}</p></div>
+      <button class="btn primary wide" id="fireAgain" style="margin-top:14px">Back to the logs</button></div>`;
+    return;
+  }
+  const q=fire.qs[fire.i],p=fire.pick;
+  v.innerHTML=`<div class="panel" style="--c:var(--tang)"><div class="row"><h3>Question ${fire.i+1} of ${fire.qs.length}</h3>
+      <span class="tally-text">${flames(fire.streak)} ${fire.streak} in a row</span></div>
+    <div class="card-q"><div class="qtext" id="fireQ" tabindex="-1">${q.q}</div>
+      <div class="opts">${q.o.map((o,j)=>{const cls=p===null?'':j===q.a?'pick-good':j===p?'pick-bad':'';
+        return`<button class="opt ${cls}" data-j="${j}" ${p===null?'':'disabled'}>${p!==null&&j===q.a?TICK:p===j?CROSS:''}${o}</button>`;}).join('')}</div>
+      <div class="why ${p===null?'':'on'}" aria-live="polite">${q.why}</div></div>
+    ${p===null?'':`<button class="btn primary wide" id="fireNext" style="margin-top:14px">${fire.i+1<fire.qs.length?'Next question':'See how the fire did'}</button>`}</div>`;
+  const f=$(p===null?'#fireQ':'#fireNext',v);if(f)try{f.focus({preventScroll:true});}catch(e){}
+}
+$('#v-fire').addEventListener('click',e=>{
+  if(e.target.closest('#fireGo')){
+    const pool=firePool();if(!pool.length)return;
+    fire={qs:shuffle(pool).slice(0,8),i:0,right:0,streak:0,top:0,pick:null,pay:0,paidOut:state.fire.last===today()};
+    sfx('tap');renderFire();return;}
+  if(e.target.closest('#fireAgain')){fire=null;renderFire();return;}
+  if(e.target.closest('#fireNext')){
+    fire.i++;fire.pick=null;
+    if(fire.i>=fire.qs.length){
+      state.fire.best=Math.max(state.fire.best,fire.top);
+      if(!fire.paidOut){state.fire.last=today();
+        const pay=fire.right+(fire.right===fire.qs.length?3:0);
+        if(pay){fire.pay=pay;gain(null,pay);}}
+      save();if(fire.right===fire.qs.length){sfx('stamp');confetti();}
+    }
+    renderFire();return;}
+  const b=e.target.closest('.opt');
+  if(b&&fire&&fire.pick===null&&fire.i<fire.qs.length){
+    const j=+b.dataset.j,ok=j===fire.qs[fire.i].a;
+    fire.pick=j;
+    if(ok){fire.right++;fire.streak++;fire.top=Math.max(fire.top,fire.streak);sfx('good');}else{fire.streak=0;sfx('bad');}
+    renderFire();}
+});
+
+/* ================= tabs ================= */
+function showView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v-'+name));
+  document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',t.dataset.v===name?'true':'false'));
+  if(name==='fire')renderFire();else if(name==='post')renderPost();else if(name==='words')renderWords();
+}
+$('#tabs').addEventListener('click',e=>{const t=e.target.closest('.tab');if(!t)return;sfx('tap');showView(t.dataset.v);});
+$('#mute').addEventListener('click',()=>{state.mute=!state.mute;save();updateHud();sfx('good');});
+
 /* ================= shell ================= */
 const board=$('#board'),dayView=$('#dayView'),home=$('#home'),mast=$('.masthead');
-const extra=document.createElement('div');board.insertAdjacentElement('afterend',extra);
+const extra=$('#extraSlot');
 
 function stats(){
   let pT=0,pR=0,qR=0,qT=0;
@@ -798,7 +1151,7 @@ function renderBoard(justDone,msg){
     ${carried(9,'runs',0)?`<p class="note" style="margin:6px 0 0">You ran the five-year game ${carried(9,'runs',0)} times. The spread won ${carried(9,'spreadWins',0)}.</p>`:''}
     </div>`:'';
   extra.innerHTML=(msg?`<div class="notice">${msg}</div>`:'')+rec;
-  tally();renderCert();
+  tally();renderMissions();renderCert();updateHud();
 }
 board.addEventListener('click',e=>{
   const b=e.target.closest('.badge');if(!b)return;
@@ -812,14 +1165,15 @@ function openDay(n){
   dayView.style.setProperty('--c',d.color);
   let worked=false,verdictShown=false,sel=null;
   dayView.innerHTML=`
-    <div class="backbar"><button class="btn" id="back">\u2190 All badges</button></div>
+    <div class="backbar"><button class="btn" id="back">\u2190 All badges</button>
+      <span class="coinpill" style="margin-left:auto">${COIN} <b class="coin-count tnum">${state.coins}</b></span></div>
     <div class="day-head"><div class="eyebrow">Day ${d.n} of 10</div><h2 id="dayTitle" tabindex="-1">${d.emoji} ${d.title}</h2></div>
     ${d.recall?`<div class="panel gate" id="pRecall"><div class="step-lab">First, from last time</div>
       <div class="qtext" style="font-weight:700;margin-bottom:11px;font-size:16px">${d.recall.q}</div>
       <div class="opts" id="rOpts">${d.recall.o.map((o,i)=>`<button class="opt" data-i="${i}">${o}</button>`).join('')}</div>
       <div class="why" id="rWhy">${d.recall.why}</div></div>`:''}
     <div id="sLesson" class="${d.recall?'hide':''}">
-      <div class="panel lesson">${d.lesson}</div>
+      <div class="panel lesson" id="lessonBox">${d.lesson}${window.speechSynthesis?'<p style="margin:12px 0 0"><button class="btn small" id="speak">\u{1F50A} Read it to me</button></p>':''}</div>
       <div class="panel gate" id="pGuess"><div class="step-lab">Call it before you see it</div>
         <div class="qtext" style="font-weight:700;margin-bottom:11px;font-size:16px">${d.predict.q}</div>
         <div class="opts" id="gOpts">${d.predict.o.map((o,i)=>`<button class="opt" data-i="${i}">${o}</button>`).join('')}</div>
@@ -839,6 +1193,7 @@ function openDay(n){
       b.textContent=(ok?TICK:CROSS)+b.textContent;b.classList.add(ok?'pick-good':'pick-bad');
       if(!ok){const c=btns[d.recall.a];c.textContent=TICK+c.textContent;c.classList.add('pick-good');}
       $('#rWhy',dayView).classList.add('on');
+      mark(ok,'r'+n,2);
       $('#pRecall',dayView).classList.add('settled');
       $('#sLesson',dayView).classList.remove('hide');
     });
@@ -853,7 +1208,7 @@ function openDay(n){
       const b=$('#done',dayView);b.disabled=false;b.textContent=isDone(n)?'Stamp it again':'Stamp my badge';
       if(!verdictShown&&d.predict.a>=0)ctx.verdict(ctx.guess===d.predict.a);},
     verdict(ok){if(verdictShown)return;verdictShown=true;
-      R(n).pred=!!ok;save();
+      R(n).pred=!!ok;save();if(ok)gain('p'+n,5);
       $('#gBar',dayView).innerHTML=`You called it: <b>${esc(ctx.guessLabel)}</b>
         <span class="verdict ${ok?'hit':'missed'}">${ok?TICK+'You were right.':CROSS+'It was '+esc(d.predict.o[d.predict.a])+'.'}</span>`;}};
 
@@ -874,18 +1229,40 @@ function openDay(n){
     d.build($('#lab',dayView),ctx);
   });
 
+  const sp=$('#speak',dayView);
+  if(sp)sp.addEventListener('click',()=>{
+    const syn=window.speechSynthesis;
+    if(syn.speaking){syn.cancel();sp.textContent='\u{1F50A} Read it to me';return;}
+    const box=$('#lessonBox',dayView).cloneNode(true);const b=box.querySelector('#speak');if(b)b.parentElement.remove();
+    const u=new SpeechSynthesisUtterance(box.textContent.replace(/\s+/g,' ').trim());u.rate=0.95;
+    u.onend=u.onerror=()=>{sp.textContent='\u{1F50A} Read it to me';};
+    syn.cancel();syn.speak(u);sp.textContent='\u23F9 Stop reading';
+  });
+
   $('#done',dayView).addEventListener('click',()=>{
-    if(!isDone(n)){state.done.push(n);save();}
-    closeDay(n);
+    let msg='';
+    if(!isDone(n)){
+      /* the vault pays before the badge coins land, so only coins that were waiting earn */
+      const left=state.vault>0?Math.max(1,Math.round(state.vault*RATE)):0;
+      state.vault+=left;state.done.push(n);save();
+      gain('b'+n,10,true);sfx('stamp');confetti();
+      msg='Badge '+n+' stamped. +10 coins.'
+        +(left?' Your vault paid you <b>'+left+'</b> coin'+(left===1?'':'s')+' of interest while you were busy.'
+              :' Coins in your wallet earn nothing. Coins in the vault earn 10% at every new badge. Have a look in the Trading post.')
+        +' A new real-life mission and new word cards just unlocked.';
+    }
+    closeDay(n,msg);
   });
   home.classList.add('off');mast.classList.add('hide');dayView.classList.add('on');window.scrollTo(0,0);
   try{$('#dayTitle',dayView).focus({preventScroll:true});}catch(e){}
 }
-function closeDay(justDone){
-  const back=justDone||(dayView.querySelector('.badge')?null:null);
+function closeDay(justDone,msg){
+  const back=justDone||null;
+  try{if(window.speechSynthesis)window.speechSynthesis.cancel();}catch(e){}
   dayView.classList.remove('on');dayView.innerHTML='';
   home.classList.remove('off');mast.classList.remove('hide');
-  renderBoard(justDone);window.scrollTo(0,0);
+  showView('board');
+  renderBoard(justDone,msg);window.scrollTo(0,0);
   if(back){const b=board.querySelector('.badge[data-n="'+back+'"]');if(b)try{b.focus({preventScroll:true});}catch(e){}}
 }
 
@@ -898,10 +1275,14 @@ function renderCert(){
   if(carried(4,'bestHr',null)!==null)lines.push(`got a lemonade stand to ${money(carried(4,'bestHr',0),2)} an hour`);
   if(carried(7,'purse',null)!==null)lines.push(`walked away from the waiting machine with ${money(carried(7,'purse',0),2)}`);
   if(carried(6,'at60',null)!==null)lines.push(`is on track for ${money(carried(6,'at60',0))} by sixty, starting from ${money(carried(6,'weekly',5))} a week`);
-  slot.innerHTML=`<div class="cert"><div class="seal">\u{1F3C5}</div><h3>All ten badges</h3>
+  const mine=STICKERS.filter(k=>state.stickers.indexOf(k[0])>-1).map(k=>k[1]).join(' ');
+  if(state.missions.length)lines.push(`finished ${state.missions.length} of 10 missions out in the real world`);
+  slot.innerHTML=`<div class="cert"><div class="seal">\u{1F3C5}</div>${mine?`<div class="flag" style="margin:0 0 6px">${mine}</div>`:''}<h3>All ten badges</h3>
     <div class="name" id="cn">${esc(state.name||'your name')}</div>
     <p class="note" style="margin:0 0 12px">${lines.map(l=>l.charAt(0).toUpperCase()+l.slice(1)).join('. ')}.</p>
-    <input type="text" id="ni" placeholder="Type your name" value="${esc(state.name||'')}" style="max-width:280px"></div>`;
+    <input type="text" id="ni" placeholder="Type your name" value="${esc(state.name||'')}" style="max-width:280px">
+    <p style="margin:14px 0 0"><button class="btn" id="printCert">\u{1F5A8}\uFE0F Print my certificate</button></p></div>`;
+  $('#printCert').addEventListener('click',()=>window.print());
   $('#ni').addEventListener('input',e=>{state.name=e.target.value;save();$('#cn').textContent=e.target.value||'your name';});
 }
 
@@ -911,7 +1292,7 @@ $('#grownBody').innerHTML=`
   <ul>
     <li>Day 1: all twelve of Sam's purchases sorted.</li>
     <li>Day 3: the jars adding to exactly 100%, because the day is called give every dollar a job.</li>
-    <li>Day 4: an actual price that beats $10 an hour. They commit to a price before seeing the result, so they cannot just sweep the slider.</li>
+    <li>Day 4: a price that gets the stand to $20 an hour, twice what chores pay. They commit to a price before seeing the result, so they cannot just sweep the slider.</li>
     <li>Day 6: dragging past age 40, or the whole point never appears.</li>
     <li>Day 9: three runs minimum, because one run of a random game proves nothing.</li>
     <li>Day 10: both halves, the reading and the ask.</li>
@@ -928,6 +1309,15 @@ $('#grownBody').innerHTML=`
     <li>Hand over a real budget, like school lunches or clothes for a term, and let them keep what is left. Let them run out, too.</li>
     <li>After Day 9, one share of a broad index fund in a custodial account beats any lecture about diversification.</li>
   </ul>
+  <h4>Coins, the vault and the trading post</h4>
+  <p>Right answers, called predictions, badges and missions pay camp coins, once each, so replaying a day cannot farm them. Coins buy stickers for the camp flag, and there are deliberately more stickers than a full camp can pay for. Coins left in the vault earn 10% at every new badge. So the camp's own currency runs the lessons for real: a budget that does not stretch, a reward for waiting, and a price for spending early. If they blow it all on the raccoon on Day 2, let them. Ask about it on Day 7.</p>
+  <h4>Campfire, word cards and missions</h4>
+  <ul>
+    <li>The Campfire quiz pulls eight questions from badges already earned. Coming back to old material after a gap is what moves it into long-term memory, so it pays coins once a day, not once a sitting.</li>
+    <li>Word cards unlock as badges are stamped. Ask them to explain one to you at dinner. Teaching it is the best test.</li>
+    <li>Each badge unlocks one mission away from the screen. It is an honour system, and you are the honour. Do not let them tick it until it is done.</li>
+    <li>Every lesson has a read-aloud button for younger or reluctant readers.</li>
+  </ul>
   <h4>Honest about the numbers</h4>
   <p>Day 6 uses one fixed run of realistic market years averaging about 7%, with a 35% fall along the way, and shows the total in today's money as well. It is a made-up fifty years, not a forecast, and deliberately not a smooth curve.</p>
   <h4>Ages</h4>
@@ -943,7 +1333,7 @@ $('#reset').addEventListener('click',e=>{
   if(!armed){armed=true;b.classList.add('danger');b.textContent='Tap again to erase badges and record';
     armTimer=setTimeout(()=>{armed=false;b.classList.remove('danger');b.textContent='Erase everything';},5000);return;}
   clearTimeout(armTimer);armed=false;b.classList.remove('danger');b.textContent='Erase everything';
-  state={done:[],name:'',free:state.free,res:{}};save();renderBoard();
+  const keep={free:state.free,mute:state.mute};state=Object.assign(fresh(),keep);fire=null;save();renderBoard();
 });
 
 renderBoard();
