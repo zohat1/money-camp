@@ -267,10 +267,24 @@ label.sw input{width:22px;height:22px;accent-color:var(--mint)}
 .mission .mday{font-weight:700;font-size:12.5px;color:var(--muted);display:block}
 .mission .btn{flex:none}
 .mission.did{border-style:dashed}
+.bonus-head{margin:26px 0 12px}
+.bonus-head h3{font-size:22px}
+.badge.bonus{border-style:dashed;min-height:150px}
+.badge.bonus.open{border-style:solid;background:var(--panel-2)}
+.stars{font-size:34px;letter-spacing:4px;text-align:center;line-height:1.1}
+.stars .off{filter:grayscale(1);opacity:.3}
+.msg{border:3px solid var(--line);border-radius:var(--r-md) var(--r-md) var(--r-md) 4px;background:var(--panel);padding:11px 13px;
+  font-size:15.5px;line-height:1.4;margin-bottom:10px}
+.msg .from{display:block;font-size:12.5px;font-weight:700;color:var(--muted);margin-bottom:3px}
+.flags{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}
+.flags div{border:3px solid var(--line);border-radius:var(--r-sm);background:var(--panel-2);padding:9px;font-size:14px;line-height:1.3}
+.flags b{display:block;font-family:"Bricolage Grotesque",sans-serif;font-size:16px}
+.goalbar{height:16px;border-radius:99px;background:var(--panel-2);border:2px solid var(--line);overflow:hidden;margin:10px 0 4px}
+.goalbar i{display:block;height:100%;background:var(--mint);transition:width .4s ease}
 .firebig{font-size:44px;text-align:center;line-height:1.1;margin:4px 0 10px;min-height:50px}
 .sellanim{font-size:22px;line-height:1.3;word-break:break-all}
 @media print{
-  .masthead,.board,#extraSlot,#missionSlot,details.grown,.day-view,.cert input,.cert .btn,.floaty,.confetti{display:none !important}
+  .masthead,.board,#bonusSlot,#extraSlot,#missionSlot,details.grown,.day-view,.cert input,.cert .btn,.floaty,.confetti{display:none !important}
   .view{display:none !important}#v-board{display:block !important}
   body{background:#fff}.cert{box-shadow:none;margin-top:40px}
 }
@@ -301,6 +315,7 @@ label.sw input{width:22px;height:22px;accent-color:var(--mint)}
   <main class="home" id="home">
     <div class="view on" id="v-board">
       <div class="board" id="board"></div>
+      <div id="bonusSlot"></div>
       <div id="extraSlot"></div>
       <div id="missionSlot"></div>
       <div id="certSlot"></div>
@@ -325,7 +340,7 @@ const SEQ=[6,11,23,25,-3,-9,-4,12,34,9,8,26,25,-30,16,-16,1,1,20,7,-6,-2,-21,17,
 
 /* ================= saved progress ================= */
 const KEY='moneycamp.v3';
-const fresh=()=>({done:[],name:'',free:false,res:{},coins:0,vault:0,paid:{},stickers:[],missions:[],mute:false,fire:{best:0,last:''}});
+const fresh=()=>({done:[],name:'',free:false,res:{},coins:0,vault:0,paid:{},stickers:[],missions:[],mute:false,fire:{best:0,last:''},bonus:{scam:{best:0,last:'',plays:0},job:{best:0,last:'',plays:0}}});
 let state=fresh();
 try{const raw=localStorage.getItem(KEY);if(raw){const p=JSON.parse(raw);
   if(p&&Array.isArray(p.done))state=Object.assign(state,p);
@@ -339,7 +354,10 @@ try{const raw=localStorage.getItem(KEY);if(raw){const p=JSON.parse(raw);
   if(!Array.isArray(state.stickers))state.stickers=[];
   if(!Array.isArray(state.missions))state.missions=[];
   if(!state.fire||typeof state.fire!=='object')state.fire={best:0,last:''};
-  state.fire.best=whole(state.fire.best);if(typeof state.fire.last!=='string')state.fire.last='';}}catch(e){state=fresh();}
+  state.fire.best=whole(state.fire.best);if(typeof state.fire.last!=='string')state.fire.last='';
+  const B=(state.bonus&&typeof state.bonus==='object')?state.bonus:{};state.bonus={};
+  ['scam','job'].forEach(k=>{const b=(B[k]&&typeof B[k]==='object')?B[k]:{};
+    state.bonus[k]={best:whole(b.best),last:typeof b.last==='string'?b.last:'',plays:whole(b.plays)};});}}catch(e){state=fresh();}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}};
 const isDone=n=>state.done.indexOf(n)>-1;
 const isLocked=n=>!state.free&&n>1&&!isDone(n-1);
@@ -389,7 +407,7 @@ function gain(key,amt,quiet){
   floaty('+'+amt+' '+COIN);if(!quiet)sfx('coin');
   return amt;
 }
-const mark=(ok,key,amt)=>{if(!ok)sfx('bad');else if(!gain(key,amt))sfx('good');};
+const mark=(ok,key,amt)=>{if(!ok)sfx('bad');else if(!key||!gain(key,amt))sfx('good');};
 
 /* reusable quiz: reveals the right answer on a miss, marks with a glyph not just colour */
 function quiz(box,items,onDone,key){
@@ -908,12 +926,16 @@ DAYS.push({
 const STICKERS=[['tent','\u{1F3D5}️','Tent',15],['raccoon','\u{1F99D}','Raccoon',25],['marsh','\u{1F361}','Marshmallows',35],
   ['canoe','\u{1F6F6}','Canoe',50],['owl','\u{1F989}','Night owl',70],['bear','\u{1F43B}','Bear',100],
   ['volcano','\u{1F30B}','Volcano',150],['crown','\u{1F451}','Gold crown',250]];
+const PRIZES=[['spy','\u{1F575}\uFE0F','Scam spotter','Spot all six in the Scam Spotter stage'],['trophy','\u{1F3C6}','Summer champion','Earn three stars in the Summer Job stage']];
+const ALLST=STICKERS.concat(PRIZES);
 const owns=id=>state.stickers.indexOf(id)>-1;
+function prize(id){if(owns(id))return '';state.stickers.push(id);save();updateHud();const k=PRIZES.find(x=>x[0]===id);
+  return k[1]+' The '+k[2]+' sticker is now on your flag. It cannot be bought, only won.';}
 function updateHud(){
   document.querySelectorAll('.coin-count').forEach(e=>e.textContent=state.coins);
   document.querySelectorAll('.vault-count').forEach(e=>e.textContent=state.vault);
   const m=$('#mute');if(m)m.textContent=state.mute?'\u{1F507} Sound off':'\u{1F50A} Sound on';
-  const f=$('#flag');if(f){const own=STICKERS.filter(k=>owns(k[0]));f.textContent=own.map(k=>k[1]).join(' ');f.style.display=own.length?'':'none';}
+  const f=$('#flag');if(f){const own=ALLST.filter(k=>owns(k[0]));f.textContent=own.map(k=>k[1]).join(' ');f.style.display=own.length?'':'none';}
 }
 function renderPost(msg){
   const left=10-state.done.length,next=state.vault>0?Math.max(1,Math.round(state.vault*RATE)):0;
@@ -930,7 +952,10 @@ function renderPost(msg){
     <p class="note" style="margin-bottom:12px">You cannot afford them all. That is on purpose. Stickers are paid for from your wallet, and they show on your flag and your certificate.</p>
     <div class="shop">${STICKERS.map(k=>{const own=owns(k[0]),cant=!own&&state.coins<k[3];
       return`<button class="shopitem ${own?'own':''} ${cant?'cant':''}" data-s="${k[0]}" ${own?'disabled':''}>
-        <span class="semoji">${k[1]}</span><span>${k[2]}</span><span class="sprice tnum">${own?TICK+'on your flag':COIN+' '+k[3]}</span></button>`;}).join('')}</div></div>`;
+        <span class="semoji">${k[1]}</span><span>${k[2]}</span><span class="sprice tnum">${own?TICK+'on your flag':COIN+' '+k[3]}</span></button>`;}).join('')}</div>
+    <p class="note" style="margin:16px 0 10px">Two stickers are not for sale at any price. They have to be won in the bonus stages.</p>
+    <div class="shop">${PRIZES.map(k=>`<div class="shopitem ${owns(k[0])?'own':'cant'}" style="grid-column:span 2">
+      <span class="semoji">${k[1]}</span><span>${k[2]}</span><span class="sprice">${owns(k[0])?TICK+'won':k[3]}</span></div>`).join('')}</div></div>`;
 }
 $('#v-post').addEventListener('click',e=>{
   const v=e.target.closest('.opt'),s=e.target.closest('.shopitem');
@@ -969,17 +994,25 @@ const WORDS=[
   [9,'\u{1F355}','Share','One slice of a company. Own a slice and you own that bit of what it earns.'],
   [9,'\u{1F95A}','Diversify','Spreading your money over lots of things, so one bad break cannot take it all.'],
   [9,'\u{1F9FA}','Index fund','One thing you buy that holds a slice of hundreds of companies at once.'],
-  [10,'\u{1F3A4}','Pitch','Asking for what you want in a way that makes yes easy: what, why it helps them, what you give back.']];
+  [10,'\u{1F3A4}','Pitch','Asking for what you want in a way that makes yes easy: what, why it helps them, what you give back.'],
+  ['scam','\u{1F3A3}','Scam','A trick to get your money, password or codes. Look for hurry, secrets, and offers too good to be true.'],
+  ['scam','\u{1F4E3}','Ad','A message someone paid for to make you want a thing. Sometimes it is dressed up as a friend.'],
+  ['job','\u{1F3DB}\uFE0F','Tax','A slice of what you earn that goes to pay for roads, schools and firefighters. Your pay arrives smaller than your wage.'],
+  ['job','\u{1F6DF}','Emergency fund','Money kept back for surprises, so a cracked screen does not turn into a loan.'],
+  ['job','\u2602\uFE0F','Insurance','Paying a small, certain cost so a big unlucky one cannot flatten you.']];
+const wOpen=w=>typeof w[0]==='number'?isDone(w[0]):state.bonus[w[0]].plays>0;
+const wCol=w=>typeof w[0]==='number'?DAYS[w[0]-1].color:w[0]==='scam'?'var(--berry)':'var(--sky)';
+const wHow=w=>typeof w[0]==='number'?'Stamp Day '+w[0]+' to collect':'Play the '+BONUS[w[0]].title+' bonus stage';
 const flipped={};
 function renderWords(){
-  const have=WORDS.filter(w=>isDone(w[0])).length;
+  const have=WORDS.filter(wOpen).length;
   $('#v-words').innerHTML=`<div class="row"><h3 style="font-size:22px">Word cards</h3><span class="tally-text">${have} of ${WORDS.length} collected</span></div>
     <p class="note" style="margin-bottom:14px">Every badge unlocks the words that go with it. Tap a card to flip it. If you can explain a card to a grown-up without looking, you own that word.</p>
-    <div class="words">${WORDS.map((w,i)=>{const open=isDone(w[0]),col=DAYS[w[0]-1].color;
+    <div class="words">${WORDS.map((w,i)=>{const open=wOpen(w),col=wCol(w);
       return open?`<button class="wcard ${flipped[i]?'flip':''}" style="--c:${col}" data-i="${i}" aria-expanded="${!!flipped[i]}">
           <span class="wemoji">${w[1]}</span><span class="wname">${w[2]}</span>
           <span class="wdef">${flipped[i]?w[3]:'Tap to flip'}</span></button>`
-        :`<div class="wcard shut"><span class="wemoji">\u{1F512}</span><span class="wname">? ? ?</span><span class="wdef">Stamp Day ${w[0]} to collect</span></div>`;}).join('')}</div>`;
+        :`<div class="wcard shut"><span class="wemoji">\u{1F512}</span><span class="wname">? ? ?</span><span class="wdef">${wHow(w)}</span></div>`;}).join('')}</div>`;
 }
 $('#v-words').addEventListener('click',e=>{const b=e.target.closest('button.wcard');if(!b)return;
   flipped[b.dataset.i]=!flipped[b.dataset.i];sfx('tap');renderWords();
@@ -1102,6 +1135,199 @@ $('#v-fire').addEventListener('click',e=>{
     renderFire();}
 });
 
+/* ================= bonus stages: replayable, different every time ================= */
+const BONUS={
+  scam:{title:'Scam Spotter',emoji:'\u{1F575}️',color:'var(--berry)',after:5,sub:'Scam, sneaky trick, or fine?',
+    chip:r=>'Best '+r.best+' of 6 · played '+r.plays+'×'},
+  job:{title:'Summer Job',emoji:'\u{1F3D6}️',color:'var(--sky)',after:8,sub:'Eight paydays. Traps, bills and treats.',
+    chip:r=>'Best '+'⭐'.repeat(r.best)+(r.best?'':'no stars yet')+' · played '+r.plays+'×'}};
+const bonusLocked=k=>!state.free&&!isDone(BONUS[k].after);
+
+/* kind: 0 scam, 1 sneaky trick (legal, built to make you spend), 2 fine */
+const SPOT=[
+  ['Pop-up','CONGRATS!! You won a free phone. Pay $4.99 shipping with a parent\'s card in the next 10 minutes.',0,'You cannot win a contest you never entered. A prize you have to pay for is not a prize. And look at the hurry.'],
+  ['Game chat','I am a moderator. Send me your password and I will add 10,000 gems to your account.',0,'Nobody who really works for a game ever asks for your password. Ever.'],
+  ['Shop page','Only 2 left! 14 people are looking at this right now!',1,'Maybe true, maybe made up. Either way it is there to rush you past thinking.'],
+  ['School library','Reminder: your library book is due back on Friday.',2,'No hurry, no prize, no money, and it is something you already knew about. Fine.'],
+  ['Video advert','Double your money in one week. Guaranteed. Send $20 to start.',0,'Day 6 said good growth is about 7% a year. Double in a week, guaranteed, is a lie every time.'],
+  ['Your favourite streamer','This energy drink is honestly the best. Link below!',1,'They were paid to say it. It is an ad wearing a friend costume.'],
+  ['Toy shop sign','WAS $60. NOW $29.99!',1,'The big crossed-out number is there to make $29.99 feel small. Ask what it is worth to you, not what it "was".'],
+  ['Grandma','Happy birthday! There is $10 in the card for you.',2,'That is just a nice grandma.'],
+  ['Unknown number','Hi it is Mum, I dropped my phone, this is my new number. Can you send me the code that was just texted to you?',0,'Never pass on a code. Call Mum on her old number and ask. Real Mum will not mind.'],
+  ['Free game','The best character costs 2,000 gems. Gem packs come in 1,800.',1,'Sized on purpose so one pack is never quite enough. Day 5: do the division in dollars.'],
+  ['Bank app','$0.42 interest was added to your savings account.',2,'Real interest is small and boring. That is how you know it is real.'],
+  ['Streaming app','Start your FREE trial! Just enter a card number. Cancel any time.',1,'They are betting you forget to cancel. Most people do.'],
+  ['A friend at school','I am selling my old bike for $40. Come round and try it first if you want.',2,'You can see it, try it and say no. Nobody is rushing you. Fine.'],
+  ['Chain message','Share this with 10 friends and you will ALL get a $50 gift card!',0,'Nobody hands out $550 for a share. It is collecting names and clicks.'],
+  ['Supermarket','Sweets on the shelf by the till, right at your eye level.',1,'Put there on purpose, for the moment you are bored in a queue. Not a scam. Definitely a trick.'],
+  ['Stranger online','Do not tell your parents, but I can get you rare skins really cheap.',0,'"Do not tell your parents" is the biggest red flag there is. Tell them straight away.'],
+  ['Shoe shop','Here is your receipt. You can bring them back within 30 days.',2,'A receipt and a way to change your mind. That is what honest looks like.'],
+  ['Trainer brand','LIMITED DROP. Today only. When they are gone, they are gone.',1,'Scarcity made in a marketing meeting. If you did not want them yesterday, you do not need them today.'],
+  ['Email','Your account will be DELETED in 1 hour. Click here and log in to save it.',0,'Hurry plus a link plus your login. Never click. Open the real app yourself and check.'],
+  ['Your aunt','I will pay you $5 to help me carry the shopping in.',2,'A fair job for fair pay from someone you know.']];
+const KIND=['Scam','Sneaky trick','Fine'];
+
+/* summer job cards. o = options: t label, c cash change, f smiles, trap, need (cash you must have), risk */
+const JOB={
+  earn:[
+    {t:'A neighbour needs the garden weeded.',o:[
+      {t:'$10 today',c:10,w:'Fine, but they offered $14 for the same work one week later. 40% for a week of waiting is a great trade.'},
+      {t:'$14 if you wait until next week',c:14,w:'Day 7. An extra $4 on $10 for one week of waiting. Easy yes.'}]},
+    {t:'Someone wants to buy your old scooter.',o:[
+      {t:'$20 right now',c:20,w:'Right call. The other offer was $1 more after six months, which loses to prices going up.'},
+      {t:'$21 in six months',c:0,w:'One extra dollar for half a year, and the money does not even arrive this summer. Not worth the wait.'}]},
+    {t:'Next door will pay $15 for a car wash. Sponges and soap cost you $5.',o:[
+      {t:'Do it',c:10,w:'Day 4. $15 revenue, $5 costs, $10 profit.'},
+      {t:'Too much effort',c:0,w:'Fair enough, but that was $10 of profit for an hour.'}]},
+    {t:'There is a garage sale on your street this weekend.',o:[
+      {t:'Sell the toys you have outgrown',c:12,w:'Stuff you no longer use, turned back into money.'},
+      {t:'Keep everything',c:0,w:'Your call. It will be worth a bit less next year.'}]}],
+  bill:[
+    {t:'You need snacks for the week at work. Same snack, same amount, two ways to buy it.',o:[
+      {t:'Six single bags, $6.00',c:-6,w:'Day 5. That is $1 a bag. The multipack was 75c a bag.'},
+      {t:'One multipack of six, $4.50',c:-4.5,w:'Day 5. 75c a bag against $1 a bag. You did the division.'}]},
+    {t:'Your phone screen cracks. The repair is $25, and you need the phone for work.',o:[
+      {t:'Pay the $25 from what you have saved',c:-25,need:25,w:'This is what an emergency fund is for. A surprise that stays a nuisance instead of becoming a debt.'},
+      {t:'Borrow it from your sister. She wants $30 back.',c:-30,w:'Day 8. $5 of rent on borrowed money, because there was no cushion to land on.'}]},
+    {t:'Your work shoes have a hole right through.',o:[
+      {t:'Plain pair, $20',c:-20,w:'Day 2. The shoes were the need, and you bought only the need.'},
+      {t:'The pair with the big logo, $45',c:-45,f:1,w:'Day 2. $20 of need and $25 of want in one box. Fine if you chose it on purpose.'}]},
+    {t:'The phone shop offers screen cover for $4. About one screen in four gets cracked over a summer.',o:[
+      {t:'Pay the $4',c:-4,w:'That is insurance. A small, certain cost so a big unlucky one cannot hurt you.'},
+      {t:'Skip it and hope',c:0,risk:{p:.25,c:-25,w:'Unlucky. It cracked, and the repair was $25. Insurance would have cost $4.'},
+        w:'You got away with it this time. Three times in four you will. The fourth time costs $25.'}]}],
+  trap:[
+    {t:'A message arrives: "You have WON $500! Send $10 now to unlock your prize."',o:[
+      {t:'Send the $10',c:-10,trap:1,w:'A scam. There was no prize. Anything you have to pay to receive is not a win.'},
+      {t:'Delete it',c:0,w:'Right. You cannot win a contest you never entered.'}]},
+    {t:'"LAST CHANCE! Headphones, WAS $80, NOW $40!" You already own headphones that work.',o:[
+      {t:'Half price! Buy them',c:-40,f:1,trap:1,w:'You did not save $40. You spent $40 on something you were not going to buy.'},
+      {t:'Walk past',c:0,w:'A sale only saves money on things you were buying anyway.'}]},
+    {t:'A game you want is $30. The shop says: "Take it today, pay just $9 a week for four weeks."',o:[
+      {t:'Take it today',c:-36,f:1,trap:1,w:'Four lots of $9 is $36. You paid $6 extra to not wait.'},
+      {t:'No thanks',c:0,w:'Day 8. Always multiply it out. "Just $9" was hiding $36.'}]},
+    {t:'"FREE one-week trial of GamePass! Then $5 a week until you cancel."',o:[
+      {t:'Sign up',c:-15,f:1,trap:1,w:'You forgot to cancel for three weeks. They were counting on it.'},
+      {t:'Skip it',c:0,w:'Free trials make their money from forgetting.'}]},
+    {t:'A friend wants to borrow $10. They still have not paid back the last $5.',o:[
+      {t:'Lend it',c:-10,trap:1,w:'Day 8. A record of not paying back is exactly what a credit score measures. You did not get this $10 back either.'},
+      {t:'Say "pay back the $5 first"',c:0,w:'Kind and fair. Lending is about whether they pay back, not whether you like them.'}]}],
+  fun:[
+    {t:'Everyone from work is going to the cinema on Friday. Ticket is $9.',o:[
+      {t:'Go',c:-9,f:1,w:'This is what the Spend jar is for. A summer with no fun in it is not a win.'},
+      {t:'Stay home',c:0,w:'You kept $9. Just make sure the summer is not all saving.'}]},
+    {t:'Your best friend has a birthday.',o:[
+      {t:'Buy a $10 present',c:-10,f:1,w:'The Give jar doing its job.'},
+      {t:'Make a card and bake something, $2',c:-2,f:1,w:'Just as good a smile for a fifth of the price.'}]},
+    {t:'A new skin is out for your game. $8.',o:[
+      {t:'Buy it',c:-8,f:1,w:'A want, chosen on purpose, with money you earned. That is allowed.'},
+      {t:'Skip it',c:0,w:'There will be another skin next month. There always is.'}]},
+    {t:'Your family is going to the beach for the day. It costs nothing.',o:[
+      {t:'Go',c:0,f:1,w:'The best fun of the summer was free.'},
+      {t:'Stay in',c:0,w:'You saved nothing and missed the beach.'}]}]};
+const PAY=20,TAX=3,GOAL=90;
+
+function openBonus(k){
+  const b=BONUS[k];
+  dayView.style.setProperty('--c',b.color);
+  dayView.innerHTML=`<div class="backbar"><button class="btn" id="back">← All badges</button>
+      <span class="coinpill" style="margin-left:auto">${COIN} <b class="coin-count tnum">${state.coins}</b></span></div>
+    <div class="day-head"><div class="eyebrow">Bonus stage</div><h2 id="dayTitle" tabindex="-1">${b.emoji} ${b.title}</h2></div>
+    <div id="stage"></div>`;
+  $('#back',dayView).addEventListener('click',()=>closeDay());
+  const stage=$('#stage',dayView),r=state.bonus[k];
+  const payNote=()=>r.last===today()?'This stage has already paid out today. Play for the score, and come back tomorrow for coins.':'';
+  /* records the play, pays once a day, returns the coins paid */
+  function finish(score,coins){
+    const first=r.last!==today();
+    r.plays++;r.best=Math.max(r.best,score);if(first)r.last=today();save();
+    if(first&&coins){gain(null,coins);return coins;}
+    return 0;
+  }
+  if(k==='scam')scamStage();else jobStage();
+  home.classList.add('off');mast.classList.add('hide');dayView.classList.add('on');window.scrollTo(0,0);
+  try{$('#dayTitle',dayView).focus({preventScroll:true});}catch(e){}
+
+  function scamStage(){
+    stage.innerHTML=`<div class="panel lesson"><p>Lots of people want your money. Most ask fairly. Some use tricks, and a few just steal.</p>
+      <p>Six messages are coming. Sort each one: a <strong>scam</strong> is trying to rob you. A <strong>sneaky trick</strong> is allowed, but it is built to make you spend without thinking. And some are simply fine.</p>
+      <div class="flags"><div><b>⏰ Hurry</b>"In the next 10 minutes!"</div><div><b>\u{1F92B} Secret</b>"Do not tell anyone."</div>
+        <div><b>\u{1F381} Too good</b>Free money, sure wins.</div><div><b>\u{1F511} Asks for</b>Money, passwords or codes.</div></div>
+      <p class="note" style="margin:12px 0 0">Four red flags. One is enough to stop. ${payNote()||'One coin for each one you spot, plus three for all six.'}</p></div>
+      <div class="panel"><div class="row"><h3>Six messages</h3><span class="tally-text" id="sn">0 of 6</span></div>
+      <div class="cards" id="c"></div><div class="result" id="fin" style="display:none"></div>
+      <button class="btn primary wide hide" id="again" style="margin-top:14px">Deal six new ones</button></div>`;
+    const items=shuffle(SPOT).slice(0,6);let n=0;
+    quiz($('#c',stage),items.map(m=>({q:`<div class="msg"><span class="from">${m[0]}</span>${m[1]}</div>`,o:KIND,a:m[2],why:m[3]})),(right,total)=>{
+      const paid=finish(right,right+(right===total?3:0)),won=right===total?prize('spy'):'';
+      if(right===total){sfx('stamp');confetti();}
+      const fin=$('#fin',stage);fin.style.display='block';
+      fin.innerHTML=`<span class="big tnum">${right} of ${total}</span>
+        <span class="lab2">${right===total?'A clean sweep. Nobody is getting your money by accident.':'The ones you missed will turn up again. There are twenty in the deck.'}</span>
+        <p class="note" style="margin:10px 0 0">${paid?'Paid '+paid+' coins. ':''}If something feels rushed, secret or too good, stop and show a grown-up. Asking is never the embarrassing part.</p>
+        ${won?`<div class="notice">${won}</div>`:''}`;
+      $('#again',stage).classList.remove('hide');
+    });
+    $('#c',stage).addEventListener('click',e=>{if(e.target.closest('.opt')){n=Math.min(6,n+1);$('#sn',stage).textContent=n+' of 6';}});
+    $('#again',stage).addEventListener('click',()=>{scamStage();window.scrollTo(0,0);});
+  }
+
+  function jobStage(){
+    /* two of each kind, so every summer is winnable and no two are the same */
+    const deck=shuffle(['earn','bill','trap','fun'].reduce((a,t)=>a.concat(shuffle(JOB[t]).slice(0,2).map(c=>({kind:t,c:c}))),[]));
+    let wk=0,cash=0,fun=0,traps=0,log=[],picked=null,started=false;
+    const smile=n=>n?'\u{1F604}'.repeat(n):'none yet';
+    function draw(){
+      if(!started){
+        stage.innerHTML=`<div class="panel lesson"><p>You have a summer job for eight weeks. It pays $${PAY} a week, but <strong>$${TAX} of tax</strong> comes out before you ever see it. Tax pays for roads, schools and firefighters. So $${PAY-TAX} lands in your pocket.</p>
+          <p>You are saving for a <strong>$${GOAL} bike</strong>. Every week something happens, and you decide what to do about it.</p>
+          <p class="note" style="margin:0">Three stars to win: finish with $${GOAL} or more, dodge every trap, and still have some fun. ${payNote()||'Three coins a star.'}</p></div>
+          <button class="btn primary wide" id="start">Start week one</button>`;
+        $('#start',stage).addEventListener('click',()=>{started=true;cash=PAY-TAX;sfx('coin');draw();});
+        return;
+      }
+      if(wk>=8){end();return;}
+      const card=deck[wk].c;
+      stage.innerHTML=`<div class="panel"><div class="row"><h3>Week ${wk+1} of 8</h3><span class="tally-text tnum">${money(cash,2)}</span></div>
+        <div class="goalbar" aria-hidden="true"><i style="width:${Math.max(0,Math.min(100,cash/GOAL*100))}%"></i></div>
+        <p class="note" style="margin-bottom:12px">Payday: $${PAY}, minus $${TAX} tax, is $${PAY-TAX} in your pocket. Bike: $${GOAL}. Smiles: ${smile(fun)}</p>
+        <div class="card-q"><div class="qtext" id="jq" tabindex="-1">${card.t}</div>
+          <div class="opts" style="flex-direction:column">${card.o.map((o,j)=>{const no=picked===null&&o.need&&cash<o.need;
+            return`<button class="opt ${picked===j?'chosen':''}" data-j="${j}" ${picked!==null||no?'disabled':''}>${o.t}${no?' (you do not have it)':''}</button>`;}).join('')}</div>
+          <div class="why ${picked===null?'':'on'}" id="jw" aria-live="polite"></div></div>
+        ${picked===null?'':`<button class="btn primary wide" id="next" style="margin-top:14px">${wk<7?'Next payday':'End of summer'}</button>`}</div>`;
+      if(picked!==null){$('#jw',stage).innerHTML=log[log.length-1];
+        $('#next',stage).addEventListener('click',()=>{wk++;picked=null;if(wk<8){cash+=PAY-TAX;}draw();window.scrollTo(0,0);});
+        try{$('#next',stage).focus({preventScroll:true});}catch(e){}}
+      else stage.querySelector('.opts').addEventListener('click',e=>{
+        const btn=e.target.closest('.opt');if(!btn||btn.disabled)return;
+        const o=card.o[+btn.dataset.j];let c=o.c,w=o.w;
+        if(o.risk&&Math.random()<o.risk.p){c=o.risk.c;w=o.risk.w;}
+        cash+=c;fun+=o.f||0;if(o.trap)traps++;
+        log.push((o.trap?'<b class="down">'+CROSS+'Trap.</b> ':'')+w+(c?' <b class="tnum '+(c>0?'up':'down')+'">'+(c>0?'+':'−')+money(Math.abs(c),2)+'</b>':'')+(o.f?' \u{1F604}':''));
+        picked=+btn.dataset.j;sfx(o.trap||c<=-25?'bad':c>0?'coin':'tap');draw();
+      });
+    }
+    function end(){
+      const s1=cash>=GOAL,s2=traps===0,s3=fun>=2,stars=(s1?1:0)+(s2?1:0)+(s3?1:0);
+      const paid=finish(stars,stars*3),won=stars===3?prize('trophy'):'';
+      if(stars===3){sfx('stamp');confetti();}
+      const line=(ok,t)=>`<div class="mission ${ok?'':'did'}"><span style="font-size:22px" class="${ok?'':'stars'}"><span class="${ok?'':'off'}">⭐</span></span><span class="mtxt">${t}</span></div>`;
+      stage.innerHTML=`<div class="panel"><div class="stars" aria-label="${stars} of 3 stars">${[0,1,2].map(i=>`<span class="${i<stars?'':'off'}">⭐</span>`).join('')}</div>
+        <div class="result"><span class="big tnum">${money(cash,2)}</span>
+          <span class="lab2">at the end of summer. Your wage added up to ${money(PAY*8)}, tax took ${money(TAX*8)} of it, and ${money((PAY-TAX)*8)} actually reached you.</span></div>
+        ${line(s1,s1?'You can buy the $'+GOAL+' bike, with '+money(cash-GOAL,2)+' left over.':'You are '+money(GOAL-cash,2)+' short of the bike.')}
+        ${line(s2,s2?'You dodged every trap.':'You walked into '+traps+' trap'+(traps===1?'':'s')+'. Each one looked like a good deal at the time.')}
+        ${line(s3,s3?'And you still had a summer: '+smile(fun):'All work and no fun. Money is for something. Spend a little of it on purpose.')}
+        <p class="note" style="margin:12px 0 0">${paid?'Paid '+paid+' coins. ':''}Every summer deals different cards. The moves stay the same: divide, multiply it out, ask what the waiting pays, keep a cushion.</p>
+        ${won?`<div class="notice">${won}</div>`:''}
+        <button class="btn primary wide" id="again" style="margin-top:14px">Work another summer</button></div>`;
+      $('#again',stage).addEventListener('click',()=>{jobStage();window.scrollTo(0,0);});
+    }
+    draw();
+  }
+}
+
 /* ================= tabs ================= */
 function showView(name){
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v-'+name));
@@ -1142,6 +1368,13 @@ function renderBoard(justDone,msg){
       <span class="day-no">Day ${d.n}</span><span class="emoji">${d.emoji}</span>
       <span class="b-title">${d.title}</span><span class="b-sub">${d.sub}</span>${chip}
       ${lock?'<span class="lock">\u{1F512}</span>':isDone(d.n)?`<span class="stamp ${justDone===d.n?'pop':''}">\u2605</span>`:''}</button>`;}).join('');
+  $('#bonusSlot').innerHTML=`<div class="bonus-head"><h3>Bonus stages</h3>
+    <p class="note" style="margin:6px 0 0">Different every time. Play them as often as you like, and they pay coins once a day.</p></div>
+    <div class="board" style="margin-top:0">${Object.keys(BONUS).map(k=>{const b=BONUS[k],lock=bonusLocked(k),r=state.bonus[k];
+      return`<button class="badge bonus ${lock?'locked':'open'}" style="--c:${b.color}" data-b="${k}" ${lock?`aria-disabled="true" aria-label="${b.title}. Locked until day ${b.after} is finished."`:''}>
+        <span class="day-no">Bonus</span><span class="emoji">${b.emoji}</span><span class="b-title">${b.title}</span><span class="b-sub">${b.sub}</span>
+        <span class="chip">${lock?'Opens after Day '+b.after:r.plays?b.chip(r):'New. Not played yet'}</span>
+        ${lock?'<span class="lock">\u{1F512}</span>':''}</button>`;}).join('')}</div>`;
   const s=stats();
   const rec=state.done.length||s.pT?`<div class="record"><h3>Your camp record</h3><div class="rec-grid">
     <div class="stat"><span class="big tnum">${s.pR} of ${s.pT}</span><span class="lab2">predictions called right</span></div>
@@ -1158,6 +1391,12 @@ board.addEventListener('click',e=>{
   const n=+b.dataset.n;
   if(isLocked(n)){renderBoard(null,'Day '+(n-1)+' first. Each day starts with a question about the one before it.');return;}
   openDay(n);
+});
+
+$('#bonusSlot').addEventListener('click',e=>{
+  const b=e.target.closest('.badge');if(!b)return;const k=b.dataset.b;
+  if(bonusLocked(k)){renderBoard(null,BONUS[k].title+' opens once Day '+BONUS[k].after+' is stamped.');return;}
+  openBonus(k);
 });
 
 function openDay(n){
@@ -1275,7 +1514,7 @@ function renderCert(){
   if(carried(4,'bestHr',null)!==null)lines.push(`got a lemonade stand to ${money(carried(4,'bestHr',0),2)} an hour`);
   if(carried(7,'purse',null)!==null)lines.push(`walked away from the waiting machine with ${money(carried(7,'purse',0),2)}`);
   if(carried(6,'at60',null)!==null)lines.push(`is on track for ${money(carried(6,'at60',0))} by sixty, starting from ${money(carried(6,'weekly',5))} a week`);
-  const mine=STICKERS.filter(k=>state.stickers.indexOf(k[0])>-1).map(k=>k[1]).join(' ');
+  const mine=ALLST.filter(k=>state.stickers.indexOf(k[0])>-1).map(k=>k[1]).join(' ');
   if(state.missions.length)lines.push(`finished ${state.missions.length} of 10 missions out in the real world`);
   slot.innerHTML=`<div class="cert"><div class="seal">\u{1F3C5}</div>${mine?`<div class="flag" style="margin:0 0 6px">${mine}</div>`:''}<h3>All ten badges</h3>
     <div class="name" id="cn">${esc(state.name||'your name')}</div>
@@ -1316,6 +1555,7 @@ $('#grownBody').innerHTML=`
     <li>The Campfire quiz pulls eight questions from badges already earned. Coming back to old material after a gap is what moves it into long-term memory, so it pays coins once a day, not once a sitting.</li>
     <li>Word cards unlock as badges are stamped. Ask them to explain one to you at dinner. Teaching it is the best test.</li>
     <li>Each badge unlocks one mission away from the screen. It is an honour system, and you are the honour. Do not let them tick it until it is done.</li>
+    <li>Two bonus stages open part-way through and never run out. Scam Spotter (after Day 5) deals six new messages each time: scams, sales tricks and honest ones. Summer Job (after Day 8) is an eight-week run with tax taken from every payday, surprise bills, traps and treats, and it replays the camp's core lessons with different cards each time. They are the thing to send them back to a month after the last badge.</li>
     <li>Every lesson has a read-aloud button for younger or reluctant readers.</li>
   </ul>
   <h4>Honest about the numbers</h4>
